@@ -13,6 +13,6 @@ local_settings.py
 build
 dist
 fronted
-mcs_web_linux.tar.gz
+/mcs_web_linux*
 node_modules
 package-lock.json
