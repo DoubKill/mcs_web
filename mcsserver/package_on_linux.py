@@ -49,7 +49,7 @@ def package():
     print("tar file")
     os.chdir("../..")
     try:
-        with open('../version', 'r', encoding='utf-8') as f:
+        with open('version', 'r', encoding='utf-8') as f:
             version = f.read()
     except Exception as e:
         version = ''
