@@ -1,0 +1,3 @@
+#！bin/sh
+
+./manage runapscheduler

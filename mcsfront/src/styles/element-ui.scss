@@ -1,0 +1,245 @@
+// cover some element-ui styles
+$--color-primary: #0893ae !default;
+$color-primary: #0893ae;
+$color-primary-a: rgba(8, 147, 174, 0.5);
+$color-blue: rgb(64, 158, 255);
+$color-blue-a: rgba(64, 158, 255, 0.5);
+$color-modify: rgb(160, 81, 112);
+$color-modify-a: rgba(160, 81, 112, 0.5);
+
+.navbar {
+  .el-breadcrumb__separator {
+    color: #fff !important;
+  }
+}
+.el-pager li{
+  &.active{
+    color:$color-primary;
+  }
+  &:hover,&:visited,&:active ,&:link{
+    color:$color-primary;
+  }
+}
+.el-card__body{
+  padding: 10px;
+}
+//给表格增加高度 固定表头
+.center-box .el-table__body-wrapper{
+  overflow-y: auto;
+  max-height: 65vh;
+}
+.el-table td{
+  padding: 4px 0 !important;
+}
+.el-table .cell{
+  padding: 0 6px !important;
+}
+.el-table td, .el-table th{
+  padding: 8px 0;
+}
+.el-table th{
+  background: #d9e8f2;
+}
+body .el-table th.gutter{
+  display: table-cell!important;
+}
+
+.el-checkbox__inner,.el-radio__inner{
+  border: 1px solid #756d6d;
+}
+
+.el-button {
+  &--primary {
+    background-color: $color-primary;
+    border-color: $color-primary;
+
+    &:hover,&:visited,&:active ,&:link{
+      background-color: $color-primary;
+      border-color: $color-primary;
+    }
+
+    &,
+    &:focus {
+      border-color: $color-primary;
+      background: $color-primary;
+    }
+
+    &.is-disabled {
+      &,
+      &:focus,
+      &:hover {
+        border-color: $color-primary-a;
+        background: $color-primary-a;
+      }
+    }
+  }
+}
+
+.el-button {
+  &--blue {
+    background-color: $color-blue;
+    border-color: $color-blue;
+    color:#fff;
+
+    &:hover,&:visited, &:active, &:link {
+      background-color: $color-blue;
+      border-color: $color-blue;
+      color:#fff;
+    }
+    &,
+    &:focus {
+      border-color: $color-blue;
+      background: $color-blue;
+      color:#fff;
+    }
+
+    &.is-disabled {
+      &,
+      &:focus,
+      &:hover {
+        border-color: $color-blue-a;
+        background: $color-blue-a;
+        color:#fff;
+      }
+    }
+  }
+  &--modify {
+    background-color: $color-modify;
+    border-color: $color-modify;
+    color:#fff;
+
+    &:hover,&:visited, &:active, &:link {
+      background-color: $color-modify;
+      border-color: $color-modify;
+      color:#fff;
+    }
+    &,
+    &:focus {
+      border-color: $color-modify;
+      background: $color-modify;
+      color:#fff;
+    }
+
+    &.is-disabled {
+      &,
+      &:focus,
+      &:hover {
+        border-color: $color-modify-a;
+        background: $color-modify-a;
+        color:#fff;
+      }
+    }
+  }
+}
+
+.el-breadcrumb__inner,
+.el-breadcrumb__inner a {
+  font-weight: 400 !important;
+  color: #fff;
+}
+
+.el-upload {
+  input[type="file"] {
+    display: none !important;
+  }
+}
+
+.el-upload__input {
+  display: none;
+}
+
+
+// to fixed https://github.com/ElemeFE/element/issues/2461
+.el-dialog {
+  transform: none;
+  left: 0;
+  position: relative;
+  margin: 0 auto;
+}
+
+// refine element ui upload
+.upload-container {
+  .el-upload {
+    width: 100%;
+
+    .el-upload-dragger {
+      width: 100%;
+      height: 200px;
+    }
+  }
+}
+
+// dropdown
+.el-dropdown-menu {
+  a {
+    display: block
+  }
+}
+
+// to fix el-date-picker css style
+.el-range-separator {
+  box-sizing: content-box;
+}
+
+.summary-cell-style{
+  background: #D1CBE4 !important;
+}
+.el-table__footer-wrapper tbody td, .el-table__header-wrapper tbody td{
+  background: #D1CBE4 !important;
+}
+// .el-input{
+//   width:200px;
+//   input{
+//     width:100%;
+//   }
+// }
+// .el-select{
+//   width:200px;
+// }
+
+.el-input--small .el-input__icon{
+  height: 33px;
+}
+.top-search-box{
+  .el-form-item {
+    margin-bottom: 5px;
+  }
+}
+.center-box{
+  margin-top:5px;
+  margin-bottom:50px;
+}
+#footer{
+  width: 100%;
+  height: 34px !important;
+  background-color: #eee;
+  
+  position: fixed;
+  
+  bottom: 0;
+  z-index: 1;
+  }
+  .el-dialog__body .el-input{
+    width: 250px;
+  }
+  .el-dialog__body .el-input--small{
+    width: auto;
+  }
+.el-form-item {
+    margin-bottom: 16px;
+}
+.el-dialog__body{
+  padding-top:10px;
+  padding-bottom:0px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  input[type="number"]{
+    -moz-appearance: textfield;
+  }
+  input{
+  border: none
+  }
+}

@@ -1,0 +1,30 @@
+// sidebar 自定义到html的样式 全局css属性
+// import variables from '@/styles/variables.scss' 定义成方法 .的方式获取
+$menuText:#bfcbd9;
+$menuActiveText:#f4f4f5;
+$subMenuActiveText:#fff; //https://github.com/ElemeFE/element/issues/12951
+
+// $menuBg:#304156;
+$menuBg:rgb(62, 69, 83);
+$menuHover:#263445;
+
+$subMenuBg:#1f2d3d;
+$subMenuHover:#001528;
+
+$sideBarWidth: 210px;
+
+$color-primary: #0893ae;
+$color-primary-a: rgba(11, 150, 189, 0.5);
+
+// the :export directive is the magic sauce for webpack
+// https://www.bluematador.com/blog/how-to-share-variables-between-js-and-sass
+:export {
+  menuText: $menuText;
+  menuActiveText: $menuActiveText;
+  subMenuActiveText: $subMenuActiveText;
+  menuBg: $menuBg;
+  menuHover: $menuHover;
+  subMenuBg: $subMenuBg;
+  subMenuHover: $subMenuHover;
+  sideBarWidth: $sideBarWidth;
+}

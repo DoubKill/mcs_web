@@ -1,0 +1,9 @@
+{
+  "db_conf": {
+    "database": "mcs0921",
+    "user": "postgres",
+    "password": "123456",
+    "host": "10.10.100.86",
+    "port": "5432"
+    }
+}
