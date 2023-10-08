@@ -63,6 +63,7 @@ class WorkArea(AbstractEntity):
     area_name = models.CharField(max_length=64, help_text='工作区名称', verbose_name='工作区名称', unique=True)
     description = models.CharField(max_length=256, blank=True, null=True, help_text='描述', verbose_name='描述')
     rcs_address = models.CharField(max_length=256, blank=True, null=True, help_text='RCS地址', verbose_name='RCS地址')
+    agv_type = models.PositiveIntegerField(blank=True, null=True)  # AGV类型 1：一体车 2：叠片车 3：分选车
 
     class Meta:
         db_table = 'bdm_work_area'
