@@ -56,6 +56,37 @@ def request_wcs(wcs_url, device_name, inter_face_Name, control1=""):
     return all_content
 
 
+def request_wcs_fz(wcs_url, device_name, inter_face_Name, control1=""):
+    headers = {
+        'Content-Type': "application/json",
+        'cache-control': "no-cache",
+        'charset': 'utf-8',
+    }
+    req_data = {
+        "Request": {
+            "control1": control1,
+            "deviceName": device_name,
+            "deviceType": "opc_ua",
+            "interfaceName": inter_face_Name,
+            "subInterfaceId": ""
+        }
+    }
+    try:
+        url = wcs_url + '/api/wcs/call_interface'
+        resp = requests.request("POST", url, json=req_data, headers=headers, timeout=2)
+        resp.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        collect_logger.error('站台：{}, 点位：{}，请求超时！'.format(device_name, inter_face_Name))
+        return None
+    else:
+        resp_json_data = resp.json()
+        resp_data = resp_json_data['Response']
+        if resp_data['Result'] == 'True':
+            return resp_data['RecvData'][0]['content']
+        collect_logger.error('站台：{}, 点位：{}，请求失败！'.format(device_name, inter_face_Name))
+        return None
+
+
 # 获取全部机台全部点位
 def batch_request_wcs(wcs_url, device_names, inter_face_Name):
     headers = {
@@ -142,37 +173,76 @@ def collect_stock_info():
     now_time = datetime.datetime.now()
     # 站台、工艺段关系
     station_process = dict(PlatFormInfo.objects.all().values_list('platform_ID', 'process__process_ID'))
+    try:
+        dz_fz_flag = int(Configuration.objects.get(key='dz_fz').value)
+    except Exception:
+        dz_fz_flag = 0
     for in_location_name, device_name in in_location_names.items():
-        ret_data = request_wcs(wcs_url, in_location_name, 'stock_inventory')
-        if not ret_data:
-            CacheDeviceInfo.objects.filter(device_name=device_name).update(is_connected=False)
-            continue
-        for item in ret_data:
-            row = item['row']
-            column = item['column']
-            layer = item['layer']
-            kwargs = {'row': row, 'column': column, 'layer': layer, 'equip_code': device_name}
-            if not item['material_out_time']:
-                output_time_consume, layoff_time, storge_time = None, None, 0
-            else:
-                output_time_consume = item['material_out_time'] * 60
-                storge_time = item.get('storge_time', 0) * 60
-                layoff_time_instance = CacheDeviceStock.objects.filter(**kwargs).last()
-                layoff_time = layoff_time_instance.layoff_time if layoff_time_instance.layoff_time else (
-                    (now_time - datetime.timedelta(seconds=output_time_consume + storge_time)).strftime('%Y-%m-%d %H:%M:%S'))
-            defaults = {
-                'in_processID': station_process.get(item['equip_id'], ''),
-                'in_material_type_name': item['material_type'],
-                'equipID': item['equip_id'],
-                'output_time_consume': output_time_consume,
-                'storge_time': storge_time,
-                'q_time': item['Qtime'],
-                'in_task_no': item['in_order_id'],
-                'basket_num': item['deposit'],
-                'layoff_time': layoff_time
-            }
-            CacheDeviceStock.objects.filter(**kwargs).update(**defaults)
-            CacheDeviceInfo.objects.filter(device_name=device_name).update(is_connected=True)
+        if dz_fz_flag:
+            ret = request_wcs_fz(wcs_url, in_location_name, 'stock_inventory')
+            try:
+                ret_data = json.loads(ret)
+            except Exception:
+                CacheDeviceInfo.objects.filter(device_name=device_name).update(is_connected=False)
+                continue
+            for item in ret_data:
+                row = item['row']
+                column = item['column']
+                layer = item['layer']
+                kwargs = {'row': row, 'column': column, 'layer': layer, 'equip_code': device_name}
+                if not item['material_out_time']:
+                    output_time_consume, layoff_time, storge_time = None, None, 0
+                else:
+                    output_time_consume = item['material_out_time'] * 60
+                    storge_time = item.get('storge_time', 0) * 60
+                    layoff_time_instance = CacheDeviceStock.objects.filter(**kwargs).last()
+                    layoff_time = layoff_time_instance.layoff_time if layoff_time_instance.layoff_time else (
+                        (now_time - datetime.timedelta(seconds=output_time_consume + storge_time)).strftime(
+                            '%Y-%m-%d %H:%M:%S'))
+                defaults = {
+                    'in_processID': item['process_id'],
+                    'in_material_type_name': item['material_type'],
+                    'equipID': item['equip_id'],
+                    'output_time_consume': output_time_consume,
+                    'storge_time': storge_time,
+                    'q_time': item['Qtime'],
+                    'in_task_no': item['in_order_id'],
+                    'basket_num': item['deposit'],
+                    'layoff_time': layoff_time
+                }
+                CacheDeviceStock.objects.filter(**kwargs).update(**defaults)
+                CacheDeviceInfo.objects.filter(device_name=device_name).update(is_connected=True)
+        else:
+            ret_data = request_wcs(wcs_url, in_location_name, 'stock_inventory')
+            if not ret_data:
+                CacheDeviceInfo.objects.filter(device_name=device_name).update(is_connected=False)
+                continue
+            for item in ret_data:
+                row = item['row']
+                column = item['column']
+                layer = item['layer']
+                kwargs = {'row': row, 'column': column, 'layer': layer, 'equip_code': device_name}
+                if not item['material_out_time']:
+                    output_time_consume, layoff_time, storge_time = None, None, 0
+                else:
+                    output_time_consume = item['material_out_time'] * 60
+                    storge_time = item.get('storge_time', 0) * 60
+                    layoff_time_instance = CacheDeviceStock.objects.filter(**kwargs).last()
+                    layoff_time = layoff_time_instance.layoff_time if layoff_time_instance.layoff_time else (
+                        (now_time - datetime.timedelta(seconds=output_time_consume + storge_time)).strftime('%Y-%m-%d %H:%M:%S'))
+                defaults = {
+                    'in_processID': station_process.get(item['equip_id'], ''),
+                    'in_material_type_name': item['material_type'],
+                    'equipID': item['equip_id'],
+                    'output_time_consume': output_time_consume,
+                    'storge_time': storge_time,
+                    'q_time': item['Qtime'],
+                    'in_task_no': item['in_order_id'],
+                    'basket_num': item['deposit'],
+                    'layoff_time': layoff_time
+                }
+                CacheDeviceStock.objects.filter(**kwargs).update(**defaults)
+                CacheDeviceInfo.objects.filter(device_name=device_name).update(is_connected=True)
 
 #  单个点位获取
 # def collect_basket_num():
