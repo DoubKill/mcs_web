@@ -269,7 +269,7 @@ def init_global_conf():
 
 def main():
     print('开始迁移数据库')
-    apps = ('agv', 'basics', 'monitor', 'openapi', 'user')
+    # apps = ('agv', 'basics', 'monitor', 'openapi', 'user')
     #
     # for app in apps:
     #     try:
