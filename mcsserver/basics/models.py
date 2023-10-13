@@ -58,6 +58,7 @@ class GlobalCode(AbstractEntity):
 
 
 class AgvType(models.Model):
+    type_ID = models.CharField(max_length=256)
     type_name = models.CharField(max_length=256)
 
     def __str__(self):
