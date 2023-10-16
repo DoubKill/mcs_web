@@ -38,6 +38,7 @@ class RCSOrderTracebackView(APIView):
         'interaction_request': {'state': 5, 'attr': 'arrived_time'},
         'interaction_begin': {'state': 6, 'attr': 'begin_act_time'},
         'finish': {'state': 7, 'attr': 'end_time'},
+        'manually_finish': {'state': 7, 'attr': 'end_time'},
         'error': {'state': 8, 'attr': 'error_time'},
         'cancel_finish': {'state': 9, 'attr': 'end_time'}
     }
@@ -66,7 +67,7 @@ class RCSOrderTracebackView(APIView):
                 pass
             else:
                 update_kwargs['agv_no'] = agv_no
-                if order_status == 'finish':
+                if order_status in ('finish', 'manually_finish'):
                     kps = list(ProcessSection.objects.filter(
                         source_process__isnull=True).values_list('process_name', flat=True))
                     # 站台任务,且进料类型不是空车 或 堆栈进料任务，补充来源站台信息
