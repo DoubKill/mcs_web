@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from basics.views import CommonCodeView, GlobalCodeTypeViewSet, GlobalCodeViewSet, \
     ProcessSectionViewSet, PlatFormInfoViewSet, RestLocationViewSet, RoutingSchemaViewSet, PlatformGroupViewSet, \
     CacheDeviceInfoViewSet, EmptyBasketRouteSchemaView, EquipLocationView, WorkAreaViewSet, GlobalSettingsView, \
-    LocationViewSet, LocationGroupViewSet, ThresholdDisplayViewSet, CheckConfView
+    LocationViewSet, LocationGroupViewSet, ThresholdDisplayViewSet, CheckConfView, AgvTypeViewSet
 
 router = DefaultRouter()
 
@@ -13,6 +13,9 @@ router.register(r'global-types', GlobalCodeTypeViewSet)
 
 # 公共代码
 router.register(r'global-codes', GlobalCodeViewSet)
+
+# AGV类型
+router.register(r'agv-type', AgvTypeViewSet)
 
 # 工作区
 router.register(r'work-areas', WorkAreaViewSet)

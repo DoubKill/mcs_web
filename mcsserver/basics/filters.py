@@ -28,10 +28,11 @@ class WorkAreaFilter(django_filters.rest_framework.FilterSet):
     area_name = django_filters.CharFilter(field_name='area_name', help_text='工作区名称', lookup_expr='icontains')
     rcs_address = django_filters.CharFilter(field_name='rcs_address', help_text='rcs地址', lookup_expr='icontains')
     description = django_filters.CharFilter(field_name='description', help_text='描述', lookup_expr='icontains')
+    agv_type_name = django_filters.CharFilter(field_name='agv_type__type_name', lookup_expr='icontains')
 
     class Meta:
         model = WorkArea
-        fields = ('id', 'area_ID', 'area_name', 'rcs_address', 'description')
+        fields = ('id', 'area_ID', 'area_name', 'rcs_address', 'description', 'agv_type_name')
 
 
 class ProcessSectionFilter(django_filters.rest_framework.FilterSet):

@@ -12,7 +12,7 @@ from basics.models import GlobalCodeType, GlobalCode, RoutingSchema, PlatformGro
     CacheDeviceRouteRelation, RestLocationRouteRelation, RestLocation, PlatformPart, \
     ProcessSection, CacheDeviceInfo, CacheDevicePart, PlatFormRealInfo, WorkArea, ProcessRestLocationRelation, \
     CacheDevicePreRouteRelation, EmptyBasketRouteSchema, Location, LocationGroup, LocationGroupRelation, \
-    EmptyCacheRouteSchema
+    EmptyCacheRouteSchema, AgvType
 
 
 class BaseModelSerializer(serializers.ModelSerializer):
@@ -49,6 +49,13 @@ class BaseModelSerializer(serializers.ModelSerializer):
             user = None
         validated_data.update(last_updated_user=user)
         return super().update(instance, validated_data)
+
+
+class AgvTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AgvType
+        fields = '__all__'
 
 
 class GlobalCodeTypeSerializer(BaseModelSerializer):
@@ -89,6 +96,7 @@ class GlobalCodeSerializer(BaseModelSerializer):
 
 
 class WorkAreaSerializer(BaseModelSerializer):
+    agv_type_name = serializers.ReadOnlyField(source='agv_type.type_name', default=None)
 
     class Meta:
         model = WorkArea
