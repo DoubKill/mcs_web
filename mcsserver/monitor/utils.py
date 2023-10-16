@@ -101,7 +101,7 @@ def get_rest_locations():
     }
     rcs_url = Configuration.objects.get(key='rcs_url').value
     try:
-        url = rcs_url + '​/api​/dispatch​/universal​/basic-data​/locations​/rest_location​/'
+        url = rcs_url + '/api/dispatch/universal/basic-data/locations/rest_location/'
         response = requests.request("GET", url, headers=headers, timeout=3)
     except Exception as e:
         return {"error": str(e)}, 400

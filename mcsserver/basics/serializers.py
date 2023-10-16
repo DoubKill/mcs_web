@@ -145,6 +145,8 @@ class PlatFormInfoUpdateSerializer(BaseModelSerializer):
     target_process = serializers.ReadOnlyField(source='process.target_process_id', default=None)
     source_process = serializers.ReadOnlyField(source='process.source_process_id', default=None)
     working_area = serializers.ReadOnlyField(source='process.working_area_id')
+    location_name = serializers.CharField(max_length=256, validators=[
+        UniqueValidator(queryset=PlatFormInfo.objects.all(), message='位置点已经被使用')])
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

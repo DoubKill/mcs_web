@@ -215,7 +215,8 @@ export default {
     },
     async getEnvCheckList(id) {
       try {
-        const data = await envCheckLocations('get', null, { params: { all: 1, working_area: id } })
+        const data = await envCheckLocations('get', null, { params: { all: 1 } })
+        // , working_area: id
         this.envCheck = data || []
         if (this.currentObj.value4 && this.currentObj.value4.length) {
           this.envCheck.forEach(item => {
@@ -229,9 +230,9 @@ export default {
       }
     },
     clickWorkingArea(val) {
-      if (val) {
-        this.getEnvCheckList(val)
-      }
+      // if (val) {
+      //   this.getEnvCheckList(val)
+      // }
     },
     handleClose(done) {
       this.dialogVisible = false
@@ -255,6 +256,7 @@ export default {
       this.currentVal = val || []
     },
     addFun() {
+      this.getEnvCheckList()
       this.getOtherList(true)
       this.dialogVisible = true
     },
