@@ -211,6 +211,16 @@ export const asyncRoutes = [{
             }
           },
           {
+            path: '/rack-type',
+            component: () => import('@/views/agv_manage/agv_base/rack_type'),
+            name: 'RackType',
+            meta: {
+              faName: 'AgvBase',
+              title: 'AGV类型管理',
+              permissionName: 'agv_type'
+            }
+          },
+          {
             path: '/workspace-manage',
             component: () => import('@/views/system_manage/workspace_manage'),
             name: 'WorkspaceManage',

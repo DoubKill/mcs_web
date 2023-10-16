@@ -37,6 +37,16 @@
             </template>
           </el-table-column>
         </el-table-column>
+        <el-table-column label="AGV类型" prop="agv_type_name">
+          <el-table-column min-width="10">
+            <template slot="header" slot-scope="scope">
+              <el-input v-model="getParams.agv_type_name" prefix-icon="el-icon-search" size="small" clearable @input="getList" />
+            </template>
+            <template slot-scope="{row}">
+              {{ row.agv_type_name }}
+            </template>
+          </el-table-column>
+        </el-table-column>
         <el-table-column label="描述" prop="description">
           <el-table-column min-width="10">
             <template slot="header" slot-scope="scope">
@@ -67,7 +77,7 @@
     <el-dialog
       :title="(currentObj.id?'编辑':'新建')+'工作区'"
       :visible.sync="dialogVisible"
-      width="300"
+      width="500px"
       :before-close="handleClose"
     >
       <el-form ref="ruleForm" :model="currentObj" :rules="rules" label-width="150px" inline>
@@ -76,6 +86,11 @@
         </el-form-item>
         <el-form-item label="工作区名称" prop="area_name">
           <el-input v-model="currentObj.area_name" size="small" />
+        </el-form-item>
+        <el-form-item label="agv类型" prop="agv_type">
+          <el-select v-model="currentObj.agv_type" size="small" placeholder="请选择">
+            <el-option v-for="(item) in ageTypeList" :key="item.id" :label="item.type_name" :value="item.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="currentObj.description" size="small" />
@@ -94,6 +109,7 @@
 
 <script>
 import { workAreas, workAreasDel } from '@/api/base_w'
+import { agvType } from '@/api/jqy'
 export default {
   name: 'WorkspaceManage',
   data() {
@@ -109,13 +125,17 @@ export default {
         ],
         area_name: [
           { required: true, message: '请填写工作区名称', trigger: 'blur' }
+        ],
+        agv_type: [
+          { required: true, message: '请选择agv类型', trigger: 'change' }
         ]
         // rcs_address: [
         //   { required: true, message: '请填写RCS地址', trigger: 'blur' }
         // ]
       },
       btnLoading: false,
-      getParams: {}
+      getParams: {},
+      ageTypeList: []
     }
   },
   created() {
@@ -132,6 +152,14 @@ export default {
         this.loading = false
       }
     },
+    async getAgv() {
+      try {
+        const data = await agvType('get', null, { params: {all:1} })
+        this.ageTypeList = data
+      } catch (e) {
+        //
+      }
+    },
     handleClose(done) {
       this.dialogVisible = false
       this.currentObj = { }
@@ -144,9 +172,11 @@ export default {
       this.currentVal = val || []
     },
     addFun() {
+      this.getAgv()
       this.dialogVisible = true
     },
     editShow(row) {
+      this.getAgv()
       this.currentObj = Object.assign({}, row)
       this.dialogVisible = true
     },

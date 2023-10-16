@@ -102,6 +102,8 @@ export default {
   DelUser: '/api/v1/user/personnels/del-user/',
   PortMaterialType: '/api/v1/basics/port-material-type/',
   PortMaterialTypeDel: '/api/v1/basics/port-material-type/batch-destroy/',
+  AgvType:'/api/v1/basics/agv-type/',
+  AgvTypeDel:'/api/v1/basics/agv-type/batch-destroy/',
   RackType: '/api/v1/basics/rack-type/',
   RackTypeDel: '/api/v1/basics/rack-type/batch-destroy/',
   RackInfo: '/api/v1/basics/rack-info/',
