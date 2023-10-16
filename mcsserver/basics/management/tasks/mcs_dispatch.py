@@ -698,8 +698,8 @@ class mcs_dispatch():
                 action = {'basket_type':row['basket_type'],"agv_slot": row['slot_no'],"location_slot": row['location_ID'],"opt": row['opt'],"machine_group_source": [],"predicted_material": [],"roll_basket_ready_time": -1,"roll_tasket_cost_time": roll_tasket_cost_time,"qtime": -1}
                 actionlist.append(action)
                 task_ptr[row['slot_no']+str(actmap[row['slot_no']])] = None
-
-        send_data = self.get_send_data(task_no,platform.platform_ID,platform.location_name,actionlist,task_type,str(agv_id),platform.agv_type_id)
+        
+        send_data = self.get_send_data(task_no,platform.platform_ID,platform.location_name,actionlist,task_type,str(agv_id),int(platform.agv_type_id))
         with self.get_mcs_session()() as session:
             id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
             session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0],'task_no':task_no,'task_delay_time':platform.task_delay_time,'send_data':json.dumps(send_data)})
@@ -1231,6 +1231,11 @@ class mcs_dispatch():
                     logger.info('{} 机台对应工作区的agv类型为空，请在页面配置'.format(one_platfrom.location_name))
                     self.set_alarm_log('error',"站台：{}，机台对应工作区的agv类型为空，请在页面配置".format(one_platfrom.location_name))
                     continue   
+
+                if one_platfrom.agv_type_id.isdigit() == False:
+                    logger.info('{} 机台对应工作区的agv类型只能为数字，请在页面配置'.format(one_platfrom.location_name))
+                    self.set_alarm_log('error',"站台：{}，机台对应工作区的agv类型只能为数字，请在页面配置".format(one_platfrom.location_name))
+                    continue   
                 '''
                 
                 (1,2)#上进下出
@@ -1530,7 +1535,7 @@ class mcs_dispatch():
                         }
                 platform_ID = platform.platform_ID,
                 location_name = platform.location_name 
-                agv_type = platform.agv_type_id
+                agv_type = int(platform.agv_type_id)
             elif platform_id in stack_dict:
 
                 task_type = 2      #堆栈
