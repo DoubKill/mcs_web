@@ -112,7 +112,7 @@ class GlobalCodeViewSet(CommonBatchDestroyView, ModelViewSet):
 
 @method_decorator([api_recorder], name="dispatch")
 class AgvTypeViewSet(CommonExportListMixin, CommonBatchDestroyView, ModelViewSet):
-    queryset = AgvType.objects.all().order_by('id')
+    queryset = AgvType.objects.all().order_by('type_ID')
     serializer_class = AgvTypeSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (DjangoFilterBackend,)
