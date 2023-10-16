@@ -56,6 +56,12 @@ ps_data = [
         'operations': ['view', 'change']
     },
     {
+        'code': 'agv_type',
+        'name': 'AGV类型管理',
+        'category_name': '基础信息管理',
+        'operations': ['view', 'add', 'change', 'delete']
+    },
+    {
         'code': 'work_area',
         'name': '工作区管理',
         'category_name': '基础信息管理',

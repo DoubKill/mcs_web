@@ -31,12 +31,12 @@ from basics.filters import GlobalCodeTypeFilter, GlobalCodeFilter, ProcessSectio
 from basics.models import GlobalCodeType, GlobalCode, ProcessSection, PlatFormInfo, RestLocation, RoutingSchema, \
     CacheDeviceRouteRelation, RestLocationRouteRelation, \
     PlatformGroup, CacheDeviceInfo, EmptyBasketRouteSchema, WorkArea, Configuration, ProcessCacheDeviceRelation, \
-    EmptyCacheRouteSchema, CacheDevicePreRouteRelation, Location, LocationGroup, PlatFormRealInfo, PlatformPart
+    EmptyCacheRouteSchema, CacheDevicePreRouteRelation, Location, LocationGroup, PlatFormRealInfo, PlatformPart, AgvType
 from basics.serializers import GlobalCodeTypeSerializer, GlobalCodeSerializer, ProcessSectionSerializer, \
     PlatFormInfoSerializer, PlatFormInfoUpdateSerializer, RestLocationSerializer, RoutingSchemaSerializer, \
     PlatformGroupSerializer, CacheDeviceInfoSerializer, CacheDeviceInfoUpdateSerializer, LocationSerializer, \
     WorkAreaSerializer, PlatFormInfoCreateSerializer, RoutingSchemaUpdateSerializer, LocationGroupSerializer, \
-    ThresholdDisplaySerializer, PlatFormImportSerializer, PlatFormExportSerializer
+    ThresholdDisplaySerializer, PlatFormImportSerializer, PlatFormExportSerializer, AgvTypeSerializer
 from monitor.utils import get_rest_locations
 from user.models import GroupExtension
 
@@ -108,6 +108,15 @@ class GlobalCodeViewSet(CommonBatchDestroyView, ModelViewSet):
     permission_classes = (IsAuthenticated,)
     pagination_class = None
     filter_class = GlobalCodeFilter
+
+
+@method_decorator([api_recorder], name="dispatch")
+class AgvTypeViewSet(CommonExportListMixin, CommonBatchDestroyView, ModelViewSet):
+    queryset = AgvType.objects.all().order_by('id')
+    serializer_class = AgvTypeSerializer
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend,)
+    VALUES_FIELDS = ['id', 'type_ID', 'type_name']
 
 
 @method_decorator([api_recorder], name="dispatch")
