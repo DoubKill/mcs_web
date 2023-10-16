@@ -24,7 +24,7 @@ pi.process_id,ps.source_process_id,ps.target_process_id,pg.route_schema_id,pi.id
 pi.task_trigger_type,pri.dock_status,pi.up_task_trigger_threshold,pi.down_task_trigger_threshold,pri.upper_basket_num,pri.lower_basket_num,pri.upper_rail_state,pri.lower_rail_state,
 (case when now() - pri.last_updated_time >= '15 s' then true else false end) as past_due,pri.upper_basket_changed_time,pri.lower_basket_changed_time,
 exists(select end_location from dma_tasks where end_location =  pi.location_name and state in(1,2,3,4,5,6)) as has_active_task,
-pg.maximum,pg.minimum,pi.delete_flag,pi.is_used,rs.is_used as route_is_used,pi.task_delay_time,
+pg.maximum,pg.minimum,pi.delete_flag,pi.is_used,rs.is_used as route_is_used,pi.task_delay_time,bat."type_ID" as agv_type_id,
 pi.shunt_threshold,
 ps.single_slot_num*((SELECT count(part_type) from bdm_platform_part where bdm_platform_part.platform_info_id = pi.id)/ (select count(upper_rail_type)+count(lower_rail_type) from  bdm_process_section where id = pi.process_id)) as slot_num,
 pri.last_updated_time,(case when now() - pri.last_updated_time >= '15 s' then true else false end) as overed,
@@ -36,6 +36,8 @@ pri.last_updated_time,(case when now() - pri.last_updated_time >= '15 s' then tr
 from bdm_platform_info as pi
 left join bdm_platform_group as pg on pg.id = pi.group_id
 inner join bdm_process_section as ps on ps.id = pi.process_id
+inner join bdm_work_area as wa on wa.id =  ps.working_area_id
+left join bdm_agv_type as bat on bat.id = wa.agv_type_id
 left join bdm_route_schema as rs on rs.id = pg.route_schema_id
 left join bdm_platform_real_info as pri on pri.platform_info_id = pi.id)
 select p.*,

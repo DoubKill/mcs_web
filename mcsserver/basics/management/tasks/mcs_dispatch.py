@@ -547,12 +547,13 @@ class mcs_dispatch():
         return stack_group 
     
 
-    def get_send_data(self,task_no,platform_ID,location_name,actionlist,task_type,agv_id=''):
+    def get_send_data(self,task_no,platform_ID,location_name,actionlist,task_type,agv_id='',agv_type =0):
         send_data = {
             "task_no": task_no,
             "dest_machine_no": platform_ID,
             "location_name": location_name,
             "agv_id":agv_id,
+            "agv_type":agv_type,
             "action_list": json.dumps(actionlist),
             #"action_list": actionlist,
             "order_type": task_type
@@ -698,7 +699,7 @@ class mcs_dispatch():
                 actionlist.append(action)
                 task_ptr[row['slot_no']+str(actmap[row['slot_no']])] = None
 
-        send_data = self.get_send_data(task_no,platform.platform_ID,platform.location_name,actionlist,task_type,str(agv_id))
+        send_data = self.get_send_data(task_no,platform.platform_ID,platform.location_name,actionlist,task_type,str(agv_id),platform.agv_type_id)
         with self.get_mcs_session()() as session:
             id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
             session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0],'task_no':task_no,'task_delay_time':platform.task_delay_time,'send_data':json.dumps(send_data)})
@@ -906,7 +907,7 @@ class mcs_dispatch():
                 task_ptr[value['slot_no']+str(key)] = None
             
 
-        send_data = self.get_send_data(task_no,stack.device_ID,location_name,actionlist,1)   
+        send_data = self.get_send_data(task_no,stack.device_ID,location_name,actionlist,1,0)   
         with self.get_mcs_session()() as session:
             id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
             session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0], 'task_no':task_no, 'task_delay_time':0,'send_data':json.dumps(send_data)})
@@ -1226,7 +1227,10 @@ class mcs_dispatch():
             try:
                 #机台是否屏蔽
                 #尾料处理
-
+                if one_platfrom.agv_type_id is None:
+                    logger.info('{} 机台对应工作区的agv类型为空，请在页面配置'.format(one_platfrom.location_name))
+                    self.set_alarm_log('error',"站台：{}，机台对应工作区的agv类型为空，请在页面配置".format(one_platfrom.location_name))
+                    continue   
                 '''
                 
                 (1,2)#上进下出
@@ -1526,9 +1530,11 @@ class mcs_dispatch():
                         }
                 platform_ID = platform.platform_ID,
                 location_name = platform.location_name 
+                agv_type = platform.agv_type_id
             elif platform_id in stack_dict:
 
                 task_type = 2      #堆栈
+                agv_type = 0
                 stack = stack_dict[platform_id]['data']
                 #task_no = self.get_task_no(platform.location_name,tag=tag)
                 task_no = self.get_task_no(stack.group_no+stack.device_ID+str(task_type))
@@ -1549,6 +1555,7 @@ class mcs_dispatch():
                     
             else:
                 task_type = 0
+                agv_type = 0
                 logger.error("agv:{},rcs在制数据异常，站台id:{}，不存在mcs的活跃站台列表里（定线+启用)".format(row["agv_id"],platform_id))
                 self.set_alarm_log('error',"agv:{},rcs在制数据异常，站台id:{}，不存在mcs的活跃站台列表里（定线+启用)".format(row["agv_id"],platform_id))
                 continue
@@ -1576,7 +1583,7 @@ class mcs_dispatch():
             
             actionlist = self.get_action_by_agv_cnt(json.loads(row["parameter_str_2"]))
 
-            send_data = self.get_send_data(task_no,platform_ID,location_name,actionlist,task_type,str(agv_id))
+            send_data = self.get_send_data(task_no,platform_ID,location_name,actionlist,task_type,str(agv_id),agv_type)
             with self.get_mcs_session()() as session:
                 id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
                 session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0],'task_no':task_no,'task_delay_time':0,'send_data':json.dumps(send_data)})
