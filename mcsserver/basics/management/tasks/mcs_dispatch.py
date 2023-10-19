@@ -1309,15 +1309,21 @@ class mcs_dispatch():
                     
                 #要判断在制数量是否超过阈值maximum,minimum
                 #platfrom_group_agv_num = self.get_platfrom_group_agv_num(one_platfrom)
-                cur_platfrom_group_agv_num = agv_count.get(one_platfrom.group_no,0)
-                shunt_cnt = 0
-                shunt_flag = False
-                if one_platfrom.shunt_from_platform is not None:
-                    for row in one_platfrom.shunt_from_platform:
-                        shunt_cnt = shunt_cnt + agv_count.get(row,0)
+                if agv_count is not None:
+                    cur_platfrom_group_agv_num = agv_count.get(one_platfrom.group_no,0)
+                    shunt_cnt = 0
+                    shunt_flag = False
+                    if one_platfrom.shunt_from_platform is not None:
+                        for row in one_platfrom.shunt_from_platform:
+                            shunt_cnt = shunt_cnt + agv_count.get(row,0)
 
-                if one_platfrom.shunt_threshold is not None and shunt_cnt > one_platfrom.shunt_threshold:
-                    shunt_flag = True
+                    if one_platfrom.shunt_threshold is not None and shunt_cnt > one_platfrom.shunt_threshold:
+                        shunt_flag = True
+                else:
+                    shunt_flag = False
+                    logger.info("站台：{},在制数据异常忽略分流功能".format(one_platfrom.location_name)) 
+                    self.set_alarm_log('error',"站台：{},在制数据异常忽略分流功能".format(one_platfrom.location_name))    
+                      
 
                 #如果只进空花篮，没有设备组
                 '''
@@ -1331,14 +1337,17 @@ class mcs_dispatch():
 
                 #ps.upper_rail_type ,ps.upper_basket_type(3,5),ps.lower_rail_type
                 
-
-                if one_platfrom.is_dry_type is False:
-                    #湿区设备，获取配置设备组，不满足退出
-                    wet_group = self.get_wet_group_no_by_platform(self,one_platfrom.platform_ID)
-                    flag = self.can_create_task_by_wet_group_no(one_platfrom.wet_group_threshold,wet_group,agv_count)
-                    if flag == False:
-                        continue
-                
+                if agv_count is not None:
+                    if one_platfrom.is_dry_type is False:
+                        #湿区设备，获取配置设备组，不满足退出
+                        wet_group = self.get_wet_group_no_by_platform(self,one_platfrom.platform_ID)
+                        flag = self.can_create_task_by_wet_group_no(one_platfrom.wet_group_threshold,wet_group,agv_count)
+                        if flag == False:
+                            continue
+                else:
+                    logger.info("站台：{},在制数据异常忽略干湿功能".format(one_platfrom.location_name)) 
+                    self.set_alarm_log('error',"站台：{},在制数据异常忽略干湿功能".format(one_platfrom.location_name))    
+                  
                 #只进空花栏没有组
                 if one_platfrom.upper_basket_type in (1,3,5) and one_platfrom.upper_rail_type ==1 and one_platfrom.lower_rail_type is None:
                     self.create_task(one_platfrom,basket_num,0,changed_time,shunt_flag,tag=tag)
