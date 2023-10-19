@@ -907,7 +907,7 @@ class mcs_dispatch():
                 task_ptr[value['slot_no']+str(key)] = None
             
 
-        send_data = self.get_send_data(task_no,stack.device_ID,location_name,actionlist,1,0)   
+        send_data = self.get_send_data(task_no,stack.device_ID,location_name,actionlist,1,1005)   
         with self.get_mcs_session()() as session:
             id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
             session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0], 'task_no':task_no, 'task_delay_time':0,'send_data':json.dumps(send_data)})
@@ -1539,7 +1539,7 @@ class mcs_dispatch():
             elif platform_id in stack_dict:
 
                 task_type = 2      #堆栈
-                agv_type = 0
+                agv_type = 1005
                 stack = stack_dict[platform_id]['data']
                 #task_no = self.get_task_no(platform.location_name,tag=tag)
                 task_no = self.get_task_no(stack.group_no+stack.device_ID+str(task_type))
