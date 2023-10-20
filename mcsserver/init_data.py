@@ -173,7 +173,13 @@ ps_data = [
         'code': 'product_static',
         'name': '工序产能报表',
         'category_name': '报表数据',
-        'operations': ['view']
+        'operations': ['view', 'export']
+    },
+    {
+        'code': 'equip_static',
+        'name': '机台产能报表',
+        'category_name': '报表数据',
+        'operations': ['view', 'export']
     },
     {
         'code': 'threshold_display',

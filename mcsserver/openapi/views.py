@@ -261,7 +261,10 @@ class PlatformSearchView(APIView):
                 else:
                     task_status = 4
                 if agv_no:
-                    eta = int(agv_eta_time_dict.get(agv_no, 0))
+                    try:
+                        eta = int(agv_eta_time_dict.get(agv_no, 0))
+                    except Exception:
+                        eta = None
             data = {
                 "work_area": work_area,
                 "group_name": group_name,
