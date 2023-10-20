@@ -120,6 +120,13 @@ class ProcessSectionSerializer(BaseModelSerializer):
     lower_rail_type_name = serializers.CharField(source='get_lower_rail_type_display', read_only=True, default=None)
     lower_basket_type_name = serializers.CharField(source='get_lower_basket_type_display', read_only=True, default=None)
 
+    def update(self, instance, validated_data):
+        if 'q_time' in validated_data:
+            PlatFormInfo.objects.filter(process=instance).update(q_time=validated_data['q_time'])
+        if 'pitch_time' in validated_data:
+            PlatFormInfo.objects.filter(process=instance).update(pitch_time=validated_data['pitch_time'])
+        return super().update(instance, validated_data)
+
     class Meta:
         model = ProcessSection
         fields = '__all__'
@@ -272,6 +279,7 @@ class PlatFormInfoSerializer(BaseModelSerializer):
     upper_basket_type = serializers.ReadOnlyField(source='process.upper_basket_type', default=None)
     lower_rail_type = serializers.ReadOnlyField(source='process.lower_rail_type', default=None)
     lower_basket_type = serializers.ReadOnlyField(source='process.lower_basket_type', default=None)
+    location_group_name = serializers.ReadOnlyField(source='location_group.group_name', default=None)
 
     class Meta:
         model = PlatFormInfo

@@ -30,9 +30,11 @@ from monitor.utils import cancel_task, get_agv_info
 @method_decorator([api_recorder], name="dispatch")
 class TaskMonitorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, GenericViewSet):
     serializer_class = TaskMonitorSerializer
-    queryset = Tasks.objects.filter(state__in=[1, 2, 3, 4, 5, 6]).order_by('id')
+    queryset = Tasks.objects.filter(state__in=[1, 2, 3, 4, 5, 6])
     filter_class = TaskMonitorFilter
-
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    ordering_fields = ('created_time',)
+    ordering = ['id']
     # def get_serializer_context(self):
     #     platform_location_dict = dict(PlatFormInfo.objects.values_list('location_name', 'platform_name'))
     #     return {
@@ -829,8 +831,11 @@ class CacheStationDetailMonitorView(APIView):
 @method_decorator([api_recorder], name="dispatch")
 class OrderHistoryView(CommonExportListMixin, ListAPIView):
     serializer_class = TaskHistorySerializer
-    queryset = Tasks.objects.filter(state__in=[7, 8, 9]).order_by('-id')
+    queryset = Tasks.objects.filter(state__in=[7, 8, 9])
     filter_class = TaskMonitorFilter
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    ordering_fields = ('created_time', 'arrived_time', 'end_time')
+    ordering = ['-id']
     EXPORT_FIELDS_DICT = {
         '任务编号': 'task_no',
         '站台 ID': 'platform_ID',

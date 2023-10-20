@@ -4,7 +4,8 @@ from rest_framework.routers import DefaultRouter
 from basics.views import CommonCodeView, GlobalCodeTypeViewSet, GlobalCodeViewSet, \
     ProcessSectionViewSet, PlatFormInfoViewSet, RestLocationViewSet, RoutingSchemaViewSet, PlatformGroupViewSet, \
     CacheDeviceInfoViewSet, EmptyBasketRouteSchemaView, EquipLocationView, WorkAreaViewSet, GlobalSettingsView, \
-    LocationViewSet, LocationGroupViewSet, ThresholdDisplayViewSet, CheckConfView, AgvTypeViewSet
+    LocationViewSet, LocationGroupViewSet, ThresholdDisplayViewSet, CheckConfView, AgvTypeViewSet, \
+    CurrentSchedulerSearch
 
 router = DefaultRouter()
 
@@ -53,5 +54,6 @@ urlpatterns = [
     path('equip-locations/', EquipLocationView.as_view()),
     path('global-settings/', GlobalSettingsView.as_view()),  # 全局配置
     path('check-conf/', CheckConfView.as_view()),
+    path('current-scheduler-search/', CurrentSchedulerSearch.as_view()),
     path('', include(router.urls)),
 ]

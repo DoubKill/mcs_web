@@ -2,7 +2,8 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from agv.views import RCSOrderTracebackView, ProductivityStatisticsView, StationTaskTrackView, EnvIndicatorsView, \
-    EnvCheckLocationsViewSet, EnvCheckTasksViewSet, EnvLocationCheckHistoryView, EnvCheckResultTraceback
+    EnvCheckLocationsViewSet, EnvCheckTasksViewSet, EnvLocationCheckHistoryView, EnvCheckResultTraceback, \
+    EquipProductivityStatisticsView
 
 router = DefaultRouter()
 
@@ -13,6 +14,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('rcs-order-traceback/', RCSOrderTracebackView.as_view()),
     path('product-static/', ProductivityStatisticsView.as_view()),
+    path('equip-product-static/', EquipProductivityStatisticsView.as_view()),
     path('station-task-track/', StationTaskTrackView.as_view()),
     path('env-indicators/', EnvIndicatorsView.as_view()),
     path('env-location-check-history/', EnvLocationCheckHistoryView.as_view()),
