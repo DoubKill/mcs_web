@@ -544,7 +544,7 @@ export const asyncRoutes = [{
             meta: {
               faName: 'ReportManage',
               title: '机台产能报表',
-              permissionName: ''//equip_static
+              permissionName: 'equip_static'
             }
           },
           {
