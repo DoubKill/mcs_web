@@ -155,16 +155,19 @@ class EquipProductivityStatisticsView(APIView):
         q_platform_name = self.request.query_params.get('platform_name')
         q_process_name = self.request.query_params.get('process_name')
         filter_kwargs = {'task_location_type': 1, 'state': 7}
+        p_kwargs = {}
         if st:
             filter_kwargs['end_time__gte'] = st
         if et:
             filter_kwargs['end_time__lte'] = et
         if q_platform_name:
             filter_kwargs['platform_name'] = q_platform_name
+            p_kwargs['platform_name'] = q_platform_name
         if q_process_name:
             filter_kwargs['process_name'] = q_process_name
+            p_kwargs['process__process_name'] = q_process_name
         ret = []
-        platform_data = PlatFormInfo.objects.values(
+        platform_data = PlatFormInfo.objects.filter(**p_kwargs).values(
             'platform_name', 'process__upper_rail_type', 'process__upper_basket_type',
             'process__lower_rail_type', 'process__lower_basket_type', 'process__cell_numbers', 'process__process_name'
         ).order_by('process__ordering', 'platform_name')
