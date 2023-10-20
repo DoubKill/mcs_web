@@ -6,6 +6,12 @@ import shutil
 
 def package():
     print("start package mcs_web")
+    try:
+        with open('version', 'r', encoding='utf-8') as f:
+            version = f.read()
+    except Exception as e:
+        version = ''
+    tar_filename = "mcs_web_linux_{}.tar.gz".format(version)
     # 删除旧打包文件
     if os.path.exists("dist"):
         shutil.rmtree('dist')
@@ -13,8 +19,8 @@ def package():
     if os.path.exists("build"):
         shutil.rmtree('build')
         print("remove build dir successfully")
-    if os.path.exists("mcs_web_linux.tar.gz"):
-        os.system('rm -rf mcs_web_linux.tar.gz')
+    if os.path.exists(tar_filename):
+        os.system('rm -rf {}'.format(tar_filename))
         print("remove mcs_web_linux.tar.gz dir successfully")
     # 删除旧前端文件
     if os.path.exists("fronted"):
@@ -48,12 +54,7 @@ def package():
     # 生成打包压缩文件
     print("tar file")
     os.chdir("../..")
-    try:
-        with open('version', 'r', encoding='utf-8') as f:
-            version = f.read()
-    except Exception as e:
-        version = ''
-    tar_filename = "mcs_web_linux_{}.tar.gz".format(version)
+
     source_dir = "dist/mcs_web"
     with tarfile.open(tar_filename, "w:gz") as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
