@@ -34,8 +34,9 @@
       </el-form>
     </div>
     <div v-loading="loading" class="center-box">
-      <el-table ref="multipleTable" v-loading="loading" :data="tableData" tooltip-effect="dark" style="width: 100%" stripe>
-        <el-table-column v-for="(item) in newTabHearder" :prop="item.prop" :label="item.label" :min-width="item.width">
+      <el-table ref="multipleTable" v-loading="loading" :data="tableData" tooltip-effect="dark" style="width: 100%" stripe @sort-change="arraySpanMethod">
+        <el-table-column v-for="(item) in newTabHearder" :prop="item.prop" :label="item.label" :min-width="item.width" :sortable="['创建时间','到位时间','结束时间'].includes(item.label)?'custom':false">
+
         </el-table-column>
       </el-table>
     </div>
@@ -48,7 +49,7 @@
 <script lang="js">
 import page from '@/components/page'
 import { debounce } from '@/utils'
-import { orderHistory, equipLocations } from '@/api/jqy'
+import { orderHistory, equipLocations, currentSchedulerSearch } from '@/api/jqy'
 export default {
   name: 'TaskQuery',
   components: { page },
@@ -94,11 +95,20 @@ export default {
     }
   },
   created() {
-    this.getList()
+    this.getTime()
   },
   mounted() {
   },
   methods: {
+    async getTime(){
+      try {
+          const data = await currentSchedulerSearch('get', null, {})
+          this.dateValue = [data.st,data.et]
+          this.changeDate()
+        } catch (e) {
+        //
+        }
+    },
     changeDebounce() {
       debounce(this, 'changeList')
     },
@@ -121,6 +131,15 @@ export default {
         this.loading = false
       } catch (e) {
         this.loading = false
+      }
+    },
+    async arraySpanMethod(val){
+      try {
+        let obj = { ordering: val.order === null ? null : (val.order === 'ascending' ? '' : '-') + val.prop }
+        Object.assign(this.getParams,obj)
+        this.getList()
+      } catch (e) {
+        //
       }
     },
     exportFun() {
@@ -148,8 +167,8 @@ export default {
       this.getList()
     },
     changeDate(arr) {
-      this.getParams.st = arr ? arr[0] : ''
-      this.getParams.et = arr ? arr[1] : ''
+      this.getParams.st = this.dateValue ? this.dateValue[0] : ''
+      this.getParams.et = this.dateValue ? this.dateValue[1] : ''
       this.changeList()
     },
     currentChange(page, pageSize) {

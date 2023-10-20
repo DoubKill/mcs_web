@@ -5,7 +5,7 @@
       <div class="botton-box">
         <el-form inline>
           <el-form-item label="时间">
-            <el-date-picker v-model="getParams.dateValue" size="small" type="datetimerange" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" value-format="yyyy-MM-dd HH:mm:ss" @change="changeDate" />
+            <el-date-picker v-model="dateValue" size="small" type="datetimerange" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" value-format="yyyy-MM-dd HH:mm:ss" @change="changeDate" />
           </el-form-item>
           <el-form-item label="目标站台">
             <el-select v-model="getParams.platform_ID" clearable size="small" placeholder="请选择" @visible-change="visibleChange" @change="changeList">
@@ -35,7 +35,7 @@
     
 <script>
 import { stationTaskTrack } from '@/api/base_w'
-import { platformInfo } from '@/api/jqy'
+import { platformInfo, currentSchedulerSearch } from '@/api/jqy'
 import page from '@/components/page'
 import common from '@/utils/common'
 export default {
@@ -53,14 +53,23 @@ export default {
     }
   },
   created() {
-    this.getList()
+    this.getTime()
   },
   mounted() {
   },
   methods: {
+    async getTime(){
+      try {
+          const data = await currentSchedulerSearch('get', null, {})
+          this.dateValue = [data.st,data.et]
+          this.changeDate()
+        } catch (e) {
+        //
+        }
+    },
     changeDate(arr) {
-      this.getParams.st = arr ? arr[0] : ''
-      this.getParams.et = arr ? arr[1] : ''
+      this.getParams.st = this.dateValue ? this.dateValue[0] : ''
+      this.getParams.et = this.dateValue ? this.dateValue[1] : ''
       this.getParams.page = 1
       this.getList()
     },

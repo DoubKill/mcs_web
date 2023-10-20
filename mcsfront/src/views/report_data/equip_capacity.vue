@@ -1,11 +1,22 @@
 <template>
   <div class="real_monitor">
-    <!-- 工序产能报表 -->
+    <!-- 机台产能报表 -->
     <div v-loading="loading" class="center-box">
       <div class="botton-box">
         <el-form inline>
-          <el-form-item label="传篮时间">
+          <el-form-item label="时间">
             <el-date-picker v-model="dateValue" size="small" type="datetimerange" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" value-format="yyyy-MM-dd HH:mm:ss" @change="changeDate" />
+          </el-form-item>
+          <el-form-item label="工艺段">
+            <el-select v-model="getParams.process_name" clearable size="small" placeholder="请选择" @change="changeProcess" @visible-change="visibleChange1">
+              <el-option v-for="item in lineList" :key="item.id" :label="item.process_name" :value="item.process_name" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="站台">
+            <el-select v-model="getParams.platform_name" clearable size="small" placeholder="请选择" @visible-change="visibleChange" @change="changeList">
+              <el-option v-for="item in station_list" :key="item.platform_ID" :label="item.platform_name" :value="item.platform_name">
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item>
             <!-- v-permission="['cache_device_conf','export']" -->
@@ -14,9 +25,10 @@
         </el-form>
       </div>
       <el-table id="out-table" :data="tableData" tooltip-effect="dark" style="width: 100%" stripe>
+        <el-table-column label="站台名称" prop="platform_name" sortable />
         <el-table-column label="工艺段名称" prop="process_name" sortable />
-        <el-table-column label="送花蓝产量" prop="in_basket_num" sortable />
-        <el-table-column label="接花蓝产量" prop="out_basket_num" sortable />
+        <el-table-column label="开始时间" prop="in_basket_num" sortable />
+        <el-table-column label="结束时间" prop="out_basket_num" sortable />
       </el-table>
     </div>
   </div>
@@ -25,9 +37,9 @@
 <script lang="js">
 // import common from '@/utils/common'
 import { setDate, exportExcel } from '@/utils/index'
-import { productStatic, currentSchedulerSearch } from '@/api/jqy'
+import { platformInfo, currentSchedulerSearch, processSections, equipProductStatic } from '@/api/jqy'
 export default {
-  name: 'ProcessCapacity',
+  name: 'EquipStatic',
   components: {},
   data() {
     return {
@@ -36,7 +48,9 @@ export default {
       btnExportLoad: false,
       getParams: {},
       loading: true,
-      exportLoading: false
+      exportLoading: false,
+      station_list: [],
+      lineList: []
     }
   },
   created() {
@@ -62,12 +76,33 @@ export default {
     async getList() {
       try {
         this.loading = true
-        const data = await productStatic('get', null, { params: this.getParams })
+        const data = await equipProductStatic('get', null, { params: this.getParams })
         this.tableData = data.data || []
         this.loading = false
       } catch (e) {
         this.loading = false
       }
+    },
+    async getStationList() {
+      try {
+        let _id = this.lineList.find(d=>d.process_name===this.getParams.process_name).id
+        this.getParams.platform_name = null
+        const data = await platformInfo('get', null, { params: { all: 1,process:_id } })
+        this.station_list = data || []
+      } catch (e) {
+      }
+    },
+    async getCurrentRouteList() {
+      try {
+        const data = await processSections('get', null, { params: { all: 1 } })
+        this.lineList = data || []
+      } catch (e) {
+        //
+      }
+    },
+    changeProcess(){
+      this.getStationList()
+      this.getList()
     },
     changeList() {
       this.getList()
@@ -75,9 +110,19 @@ export default {
     exportFun() {
       this.exportLoading = true
       setTimeout(d => {
-        exportExcel('工序产能报表')
+        exportExcel('机台产能报表')
         this.exportLoading = false
       }, 300)
+    },
+    visibleChange(bool) {
+      if (bool) {
+        // this.getStationList()
+      }
+    },
+    visibleChange1(bool) {
+      if (bool) {
+        this.getCurrentRouteList()
+      }
     },
   }
 }

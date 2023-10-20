@@ -154,6 +154,8 @@ export default {
   PlatformInfoImport: '/api/v1/basics/platform-info/import-xlsx/',
   AgvPackage: '/api/v1/monitor/agv-package/',
   LocationsSyncLocation: '/api/v1/basics/locations/sync-location/',
+  CurrentSchedulerSearch: '/api/v1/basics/current-scheduler-search/',
+  EquipProductStatic: '/api/v1/agv/equip-product-static/',
 
   ThresholdDisplay: '/api/v1/basics/threshold-display/',
   AgvInProcess: '/api/v1/monitor/agv-in-process/',

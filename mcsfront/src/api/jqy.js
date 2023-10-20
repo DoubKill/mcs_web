@@ -682,3 +682,19 @@ export function platformInfoImport(method, id, data = {}) {
   Object.assign(obj, data)
   return request(obj)
 }
+export function currentSchedulerSearch(method, id, data = {}) {
+  const obj = {
+    url: id ? API.CurrentSchedulerSearch + id + '/' : API.CurrentSchedulerSearch,
+    method: method
+  }
+  Object.assign(obj, data)
+  return request(obj)
+}
+export function equipProductStatic(method, id, data = {}) {
+  const obj = {
+    url: id ? API.EquipProductStatic + id + '/' : API.EquipProductStatic,
+    method: method
+  }
+  Object.assign(obj, data)
+  return request(obj)
+}

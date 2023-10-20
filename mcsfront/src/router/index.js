@@ -538,6 +538,16 @@ export const asyncRoutes = [{
             }
           },
           {
+            path: '/equip-capacity',
+            component: () => import('@/views/report_data/equip_capacity'),
+            name: 'EquipStatic',
+            meta: {
+              faName: 'ReportManage',
+              title: '机台产能报表',
+              permissionName: ''//equip_static
+            }
+          },
+          {
             path: '/diversion-display',
             component: () => import('@/views/report_data/diversion_display'),
             name: 'DiversionDisplay',
