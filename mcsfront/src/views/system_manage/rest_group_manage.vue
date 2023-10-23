@@ -241,8 +241,10 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.group_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -255,7 +257,7 @@ export default {
               type: 'success',
               message: '操作成功!'
             })
-            this.$store.dispatch('settings/operateTypeSetting', '删除')
+            this.$store.dispatch('settings/operateTypeSetting', '删除'+arrName)
             this.getList()
           }).catch(() => {
           })
@@ -285,14 +287,14 @@ export default {
             this.btnLoading = true
             await locationGroups(_api, this.currentObj.id || null, { data: this.currentObj })
             this.$message.success('操作成功')
-            this.handleClose(null)
-            this.getList()
             this.btnLoading = false
             if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+this.currentObj.group_name)
             } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+this.currentObj.group_name)
             }
+            this.handleClose(null)
+            this.getList()
           } catch (e) {
             this.btnLoading = false
             if (e.message) {

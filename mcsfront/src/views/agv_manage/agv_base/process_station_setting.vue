@@ -543,11 +543,14 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         if (val === '禁用' && d.is_used) {
           arr.push(d.id)
+          arrName.push(d.platform_name)
         } else if (val === '启用' && !d.is_used) {
           arr.push(d.id)
+          arrName.push(d.platform_name)
         }
       })
       this.$confirm(`${val === '禁用' ? '禁用后该机台任务将会被取消' : '此操作将' + val}` + `，是否继续?`, '提示', {
@@ -555,7 +558,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('settings/operateTypeSetting', val)
+        this.$store.dispatch('settings/operateTypeSetting', val+arrName)
         platformInfoNewUpdate('post', null, { data: { 'obj_ids': arr } })
           .then((response) => {
             this.$message({
@@ -794,15 +797,17 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.platform_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('settings/operateTypeSetting', '删除')
+        this.$store.dispatch('settings/operateTypeSetting', '删除'+arrName)
         platformInfoNewDel('post', null, { data: { obj_ids: arr } })
           .then((response) => {
             this.$message({
@@ -833,12 +838,12 @@ export default {
             this.btnLoading = true
             this.currentObj.other_change = this.type
             const _api = this.currentObj.id ? 'put' : 'post'
-            if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
-            } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
-            }
             await platformInfoNew(_api, this.currentObj.id || null, { data: this.currentObj })
+            if (this.currentObj.id) {
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+this.currentObj.platform_name)
+            } else {
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+this.currentObj.platform_name)
+            }
             this.$message.success('操作成功')
             this.handleClose(null)
             this.getList()

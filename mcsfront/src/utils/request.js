@@ -49,11 +49,13 @@ service.interceptors.request.use(
         _type = '导出'// 导出可以不用传，已做默认处理
         aaa = null
       }
-      a({ url: '/api/v1/user/user-operation-log/', method: 'post', data: { 'operator_user': _newUser, operator_type: _type, 'operator_reason': _type + routeName, 'operation_desc': aaa }}).then(() => {
+      let operator_type_str = _type.slice(0,2)
+      a({ url: '/api/v1/user/user-operation-log/', method: 'post', data: { 'operator_user': _newUser, operator_type: operator_type_str, 'operator_reason': _type + routeName, 'operation_desc': aaa }}).then(() => {
         store.dispatch('settings/operateTypeSetting', '')
       }).catch(e => {
         store.dispatch('settings/operateTypeSetting', '')
       })
+      store.dispatch('settings/operateTypeSetting', '')
     }
     // 掉接口记录当前操作end
 

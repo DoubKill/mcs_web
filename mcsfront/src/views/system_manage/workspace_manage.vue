@@ -6,17 +6,8 @@
         <el-button v-permission="['work_area','add']" type="blue" icon="el-icon-plus" size="small" @click="addFun">新增</el-button>
         <el-button v-permission="['work_area','delete']" type="danger" icon="el-icon-delete" size="small" @click="deleteFun">删除</el-button>
       </div>
-      <el-table
-        ref="multipleTable"
-        :data="tableData"
-        stripe
-        style="width: 60%"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column
-          type="selection"
-          width="40"
-        />
+      <el-table ref="multipleTable" :data="tableData" stripe style="width: 60%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="40" />
         <el-table-column label="工作区ID" prop="area_ID">
           <el-table-column min-width="10">
             <template slot="header" slot-scope="scope">
@@ -74,12 +65,7 @@
         </el-table-column>
       </el-table>
     </div>
-    <el-dialog
-      :title="(currentObj.id?'编辑':'新建')+'工作区'"
-      :visible.sync="dialogVisible"
-      width="500px"
-      :before-close="handleClose"
-    >
+    <el-dialog :title="(currentObj.id?'编辑':'新建')+'工作区'" :visible.sync="dialogVisible" width="500px" :before-close="handleClose">
       <el-form ref="ruleForm" :model="currentObj" :rules="rules" label-width="150px" inline>
         <el-form-item label="工作区ID" prop="area_ID">
           <el-input v-model="currentObj.area_ID" size="small" @change="changeId" />
@@ -154,7 +140,7 @@ export default {
     },
     async getAgv() {
       try {
-        const data = await agvType('get', null, { params: {all:1} })
+        const data = await agvType('get', null, { params: { all: 1 } })
         this.ageTypeList = data
       } catch (e) {
         //
@@ -162,7 +148,7 @@ export default {
     },
     handleClose(done) {
       this.dialogVisible = false
-      this.currentObj = { }
+      this.currentObj = {}
       this.$refs.ruleForm.resetFields()
       if (done) {
         done()
@@ -186,21 +172,23 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.area_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        workAreasDel('post', null, { data: { obj_ids: arr }})
+        workAreasDel('post', null, { data: { obj_ids: arr } })
           .then((response) => {
             this.$message({
               type: 'success',
               message: '操作成功!'
             })
-            this.$store.dispatch('settings/operateTypeSetting', '删除')
+            this.$store.dispatch('settings/operateTypeSetting', '删除' + arrName)
             this.getList()
           }).catch(() => {
           })
@@ -208,7 +196,7 @@ export default {
       })
     },
     submitFun() {
-      this.$refs.ruleForm.validate(async(valid) => {
+      this.$refs.ruleForm.validate(async (valid) => {
         if (valid) {
           try {
             const _api = this.currentObj.id ? 'put' : 'post'
@@ -222,14 +210,14 @@ export default {
             this.btnLoading = true
             await workAreas(_api, this.currentObj.id || null, { data: this.currentObj })
             this.$message.success('操作成功')
-            this.handleClose(null)
-            this.getList()
             this.btnLoading = false
             if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+ this.currentObj.area_name)
             } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+ this.currentObj.area_name)
             }
+            this.handleClose(null)
+            this.getList()
           } catch (e) {
             this.btnLoading = false
           }
