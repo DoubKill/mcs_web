@@ -38,6 +38,7 @@ class RCSOrderTracebackView(APIView):
         'interaction_request': {'state': 5, 'attr': 'arrived_time'},
         'interaction_begin': {'state': 6, 'attr': 'begin_act_time'},
         'finish': {'state': 7, 'attr': 'end_time'},
+        'manually_finish': {'state': 7, 'attr': 'end_time'},
         'error': {'state': 8, 'attr': 'error_time'},
         'cancel_finish': {'state': 9, 'attr': 'end_time'}
     }
@@ -66,7 +67,7 @@ class RCSOrderTracebackView(APIView):
                 pass
             else:
                 update_kwargs['agv_no'] = agv_no
-                if order_status == 'finish':
+                if order_status in ('finish', 'manually_finish'):
                     kps = list(ProcessSection.objects.filter(
                         source_process__isnull=True).values_list('process_name', flat=True))
                     # 站台任务,且进料类型不是空车 或 堆栈进料任务，补充来源站台信息
@@ -152,20 +153,22 @@ class EquipProductivityStatisticsView(APIView):
     def get(self, request):
         st = self.request.query_params.get('st')
         et = self.request.query_params.get('et')
-        q_platform_name = self.request.query_params.get('platform_name')
-        q_process_name = self.request.query_params.get('process_name')
+        q_platform_names = self.request.query_params.get('platform_names')
+        q_process_names = self.request.query_params.get('process_names')
         filter_kwargs = {'task_location_type': 1, 'state': 7}
         p_kwargs = {}
         if st:
             filter_kwargs['end_time__gte'] = st
         if et:
             filter_kwargs['end_time__lte'] = et
-        if q_platform_name:
-            filter_kwargs['platform_name'] = q_platform_name
-            p_kwargs['platform_name'] = q_platform_name
-        if q_process_name:
-            filter_kwargs['process_name'] = q_process_name
-            p_kwargs['process__process_name'] = q_process_name
+        if q_platform_names:
+            q_platform_name_list = q_platform_names.split(',')
+            filter_kwargs['platform_name__in'] = q_platform_name_list
+            p_kwargs['platform_name__in'] = q_platform_name_list
+        if q_process_names:
+            q_process_name_list = q_process_names.split(',')
+            filter_kwargs['process_name__in'] = q_process_name_list
+            p_kwargs['process__process_name__in'] = q_process_name_list
         ret = []
         platform_data = PlatFormInfo.objects.filter(**p_kwargs).values(
             'platform_name', 'process__upper_rail_type', 'process__upper_basket_type',
