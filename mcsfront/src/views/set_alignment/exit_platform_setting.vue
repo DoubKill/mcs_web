@@ -518,11 +518,14 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         if (val.indexOf('禁用') > -1 && (bool === 1 ? d.in_is_used : d.out_is_used)) {
           arr.push(d.id)
+          arrName.push(d.device_name)
         } else if (val.indexOf('启用') > -1 && (bool === 1 ? !d.in_is_used : !d.out_is_used)) {
           arr.push(d.id)
+          arrName.push(d.device_name)
         }
       })
       this.$confirm(`此操作${val}, 是否继续?`, '提示', {
@@ -537,7 +540,7 @@ export default {
               message: '操作成功!'
             })
             this.changeList()
-            this.$store.dispatch('settings/operateTypeSetting', val)
+            this.$store.dispatch('settings/operateTypeSetting', val + arrName)
           }).catch(() => {
           })
       }).catch(() => {
@@ -714,17 +717,19 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.device_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('settings/operateTypeSetting', '删除')
         cacheDeviceInfoDel('post', null, { data: { obj_ids: arr } })
           .then((response) => {
+            this.$store.dispatch('settings/operateTypeSetting', '删除' + arrName)
             this.$message({
               type: 'success',
               message: '操作成功!'
@@ -751,12 +756,12 @@ export default {
             // }
             this.btnLoading = true
             const _api = this.currentObj.id ? 'put' : 'post'
-            if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
-            } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
-            }
             await cacheDeviceInfo(_api, this.currentObj.id || null, { data: this.currentObj })
+            if (this.currentObj.id) {
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+ this.currentObj.device_name)
+            } else {
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+ this.currentObj.device_name)
+            }
             this.$message.success('操作成功')
             this.handleClose(null)
             this.getList()

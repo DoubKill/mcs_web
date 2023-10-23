@@ -174,11 +174,14 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         if (val === '禁用' && d.is_used) {
           arr.push(d.id)
+          arrName.push(d.location_name)
         } else if (val === '启用' && !d.is_used) {
           arr.push(d.id)
+          arrName.push(d.location_name)
         }
       })
       this.$confirm(`此操作${val}, 是否继续?`, '提示', {
@@ -186,7 +189,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('settings/operateTypeSetting', val)
+        this.$store.dispatch('settings/operateTypeSetting', val+arrName)
         locationsUpdate('post', null, { data: { 'obj_ids': arr } })
           .then((response) => {
             this.$message({
@@ -222,8 +225,10 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.location_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -236,7 +241,7 @@ export default {
               type: 'success',
               message: '操作成功!'
             })
-            this.$store.dispatch('settings/operateTypeSetting', '删除')
+            this.$store.dispatch('settings/operateTypeSetting', '删除'+arrName)
             this.getList()
           }).catch(() => {
           })
@@ -251,14 +256,14 @@ export default {
             this.btnLoading = true
             await locations(_api, this.currentObj.id || null, { data: this.currentObj })
             this.$message.success('操作成功')
-            this.handleClose(null)
-            this.getList()
             this.btnLoading = false
             if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+this.currentObj.location_name)
             } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+this.currentObj.location_name)
             }
+            this.handleClose(null)
+            this.getList()
           } catch (e) {
             this.btnLoading = false
           }

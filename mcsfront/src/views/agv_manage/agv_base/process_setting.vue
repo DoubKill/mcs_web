@@ -489,15 +489,17 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.process_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('settings/operateTypeSetting', '删除')
+        this.$store.dispatch('settings/operateTypeSetting', '删除'+arrName)
         processSectionsDel('post', null, { data: { obj_ids: arr } })
           .then((response) => {
             this.$message({
@@ -541,9 +543,9 @@ export default {
             this.btnLoading = true
             const _api = this.currentObj.id ? 'put' : 'post'
             if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+this.currentObj.process_name)
             } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+this.currentObj.process_name)
             }
             await processSections(_api, this.currentObj.id || null, { data: this.currentObj })
             this.$message.success('操作成功')
