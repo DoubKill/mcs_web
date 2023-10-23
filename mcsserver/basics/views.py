@@ -350,6 +350,9 @@ class PlatFormInfoViewSet(CommonExportListMixin, CommonBatchDestroyView, ModelVi
         queryset = self.filter_queryset(self.get_queryset())
         export = self.request.query_params.get('export')
         all_flag = self.request.query_params.get('all')
+        process_names = self.request.query_params.get('process_names')
+        if process_names:
+            queryset = queryset.filter(process__process_name__in=process_names.split(','))
         if export:
             data = PlatFormExportSerializer(queryset, many=True).data
             return gen_template_response(self.EXPORT_FIELDS_DICT, data, self.FILE_NAME,
