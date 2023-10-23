@@ -8,12 +8,12 @@
             <el-date-picker v-model="dateValue" size="small" type="datetimerange" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" value-format="yyyy-MM-dd HH:mm:ss" @change="changeDate" />
           </el-form-item>
           <el-form-item label="工艺段">
-            <el-select v-model="getParams.process_name" clearable size="small" placeholder="请选择" @change="changeProcess" @visible-change="visibleChange1">
+            <el-select style="width:300px" multiple v-model="getParams.process_names" clearable size="small" placeholder="请选择" @change="changeProcess" @visible-change="visibleChange1">
               <el-option v-for="item in lineList" :key="item.id" :label="item.process_name" :value="item.process_name" />
             </el-select>
           </el-form-item>
           <el-form-item label="站台">
-            <el-select v-model="getParams.platform_name" clearable size="small" placeholder="请选择" @visible-change="visibleChange" @change="changeList">
+            <el-select style="width:300px" multiple v-model="getParams.platform_names" clearable size="small" placeholder="请选择" @visible-change="visibleChange" @change="changeList">
               <el-option v-for="item in station_list" :key="item.platform_ID" :label="item.platform_name" :value="item.platform_name">
               </el-option>
             </el-select>
@@ -46,7 +46,10 @@ export default {
       dateValue: [],
       tableData: [],
       btnExportLoad: false,
-      getParams: {},
+      getParams: {
+        process_names:[],
+        platform_names:[],
+      },
       loading: true,
       exportLoading: false,
       station_list: [],
@@ -76,7 +79,10 @@ export default {
     async getList() {
       try {
         this.loading = true
-        const data = await equipProductStatic('get', null, { params: this.getParams })
+        let obj = JSON.parse(JSON.stringify(this.getParams))
+        obj.process_names = obj.process_names.join(',')
+        obj.platform_names = obj.platform_names.join(',')
+        const data = await equipProductStatic('get', null, { params: obj })
         this.tableData = data.data || []
         this.loading = false
       } catch (e) {
@@ -85,9 +91,9 @@ export default {
     },
     async getStationList() {
       try {
-        let _id = this.lineList.find(d=>d.process_name===this.getParams.process_name).id
-        this.getParams.platform_name = null
-        const data = await platformInfo('get', null, { params: { all: 1,process:_id } })
+        this.getParams.platform_names = []
+        let obj = this.getParams.process_names.join(',')
+        const data = await platformInfo('get', null, { params: { all: 1,process_names: obj } })
         this.station_list = data || []
       } catch (e) {
       }
