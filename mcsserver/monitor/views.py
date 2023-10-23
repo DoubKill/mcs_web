@@ -1461,9 +1461,12 @@ class TaskDurationReportView(APIView):
         platform_info = PlatFormInfo.objects.filter(**filter_kwargs2).values('platform_ID', 'platform_name', 'process__process_name', 'process__process_ID').order_by('process', 'platform_ID')
         # 获取任务数据
         tasks = Tasks.objects.filter(state=7, task_location_type=1, **filter_kwargs).values('process_name', 'platform_ID') \
-            .annotate(task=Count('id'), mean_task=Avg(F('end_time') - F('created_time'), output_field=DurationField()), mean_allot=Avg(F('bind_time') - F('active_time'), output_field=DurationField()),
-                      mean_move=Avg(F('arrived_time') - F('dispatched_time'), output_field=DurationField()), mean_dock=Avg(F('end_time') - F('begin_act_time'), output_field=DurationField())) \
-            .values('process_name', 'platform_ID', 'task', 'mean_task', 'mean_allot', 'mean_move', 'mean_dock').order_by('process_name', 'platform_ID')
+            .annotate(task=Count('id'),
+                      mean_task=Avg(F('end_time') - F('created_time'), output_field=DurationField()),
+                      mean_allot=Avg(F('bind_time') - F('active_time'), output_field=DurationField()),
+                      mean_move=Avg(F('arrived_time') - F('bind_time'), output_field=DurationField()),
+                      mean_dock=Avg(F('end_time') - F('begin_act_time'), output_field=DurationField())
+                      ).values('process_name', 'platform_ID', 'task', 'mean_task', 'mean_allot', 'mean_move', 'mean_dock').order_by('process_name', 'platform_ID')
         task_dict = {f"{task['process_name']}-{task['platform_ID']}": task for task in tasks}
         for p in platform_info:
             _task_info = task_dict.get(f"{p['process__process_name']}-{p['platform_ID']}")
