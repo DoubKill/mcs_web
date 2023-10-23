@@ -25,8 +25,8 @@
         </el-form>
       </div>
       <el-table id="out-table" :data="tableData" tooltip-effect="dark" style="width: 100%" stripe>
-        <el-table-column label="工艺段名称" prop="process_name" sortable />
         <el-table-column label="站台名称" prop="platform_name" sortable />
+        <el-table-column label="工艺段名称" prop="process_name" sortable />
         <el-table-column label="送花篮产量" prop="in_basket_num" sortable />
         <el-table-column label="接花篮产量" prop="out_basket_num" sortable />
       </el-table>
