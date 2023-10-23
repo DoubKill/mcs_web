@@ -75,7 +75,7 @@ export default {
     },
     async getStationList() {
       try {
-        const data = await platformInfo('get', null, { params: { all: 1, platform_types: '1,3' } })
+        const data = await platformInfo('get', null, { params: { all: 1 } })
         this.station_list = data || []
       } catch (e) {
       }
