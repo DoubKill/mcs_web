@@ -1211,6 +1211,7 @@ class RealTimeView(APIView):
 
 @method_decorator([api_recorder], name="dispatch")
 class InProcessView(APIView):
+    authentication_classes = ()
 
     def get(self, request):
         f_route_name = request.query_params.get('route_name')
