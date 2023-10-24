@@ -94,6 +94,25 @@ export default {
       title: ''
     }
   },
+  watch: {
+    $route: {
+      handler() {
+        if (this.$route.fullPath === '/AGV-real') {
+          this.getList()
+          this._setInterval = setInterval(d => {
+            this.getList()
+          }, 5000)
+        } else {
+          window.clearInterval(this._setInterval)
+        }
+      },
+      deep: true, // 深度监听
+      immediate: true // 第一次初始化渲染就可以监听到
+    }
+  },
+  destroyed() {
+    window.clearInterval(this._setInterval)
+  },
   mounted() {
     this.AGVRealBar = echarts.init(document.getElementById('AGVRealBar'))
     this.AGVRealBar.setOption(this.option)
@@ -109,7 +128,6 @@ export default {
       }
     })
 
-    this.getList()
   },
   methods: {
     async getList() {
