@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import F, Q
@@ -13,6 +14,7 @@ from basics.models import GlobalCodeType, GlobalCode, RoutingSchema, PlatformGro
     ProcessSection, CacheDeviceInfo, CacheDevicePart, PlatFormRealInfo, WorkArea, ProcessRestLocationRelation, \
     CacheDevicePreRouteRelation, EmptyBasketRouteSchema, Location, LocationGroup, LocationGroupRelation, \
     EmptyCacheRouteSchema, AgvType
+r_logger = logging.getLogger('route_log')
 
 
 class BaseModelSerializer(serializers.ModelSerializer):
@@ -345,6 +347,7 @@ class RoutingSchemaSerializer(serializers.ModelSerializer):
         # validated_data['route_ID'] = '1{}'.format(datetime.datetime.now().strftime("%d%H%M%S"))
         process_plats = validated_data.pop('process_plats', [])
         instance = super().create(validated_data)
+        # msg_data = """\r\n新建定线：{}""".format(instance.route_name)
         for item in process_plats:
             process_id = item['process_id']
             process = ProcessSection.objects.get(id=process_id)
@@ -352,6 +355,7 @@ class RoutingSchemaSerializer(serializers.ModelSerializer):
             plt_devices = item['plt_devices']
             routing_plt = list(filter(lambda x: x['dp_type'] == 1, plt_devices))  # 定线机台
             routing_device = list(filter(lambda x: x['dp_type'] == 2, plt_devices))  # 定线堆栈
+            # msg_data += '\r\n         {}：{}；'.format(process_name, ','.join([rp['instance_name'] for rp in routing_plt]))
             if routing_plt:
                 pg = PlatformGroup.objects.create(
                     route_schema=instance,
@@ -362,6 +366,7 @@ class RoutingSchemaSerializer(serializers.ModelSerializer):
                 )
                 PlatFormInfo.objects.filter(id__in=[i['instance_id'] for i in routing_plt]).update(pre_group_id=pg)
             if routing_device:
+                # msg_data += '{}'.format(','.join([rd['instance_name'] for rd in routing_device]))
                 pg = PlatformGroup.objects.create(
                     route_schema=instance,
                     group_ID='{}{}{}'.format('2', process.process_ID, instance.route_ID),
@@ -374,6 +379,7 @@ class RoutingSchemaSerializer(serializers.ModelSerializer):
                         cache_device_id=dv['instance_id'],
                         group=pg
                     )
+        # r_logger.info(msg_data)
         return instance
 
     class Meta:
@@ -459,6 +465,7 @@ class RoutingSchemaUpdateSerializer(serializers.ModelSerializer):
                     instance.stash_flag = False
                     instance.save()
                 else:
+                    msg_data = """\r\n启用定线：{}""".format(instance.route_name)
                     # 去掉旧定线和预定线
                     PlatFormInfo.objects.filter(group__route_schema=instance).update(group_id=None)
                     PlatFormInfo.objects.filter(pre_group__route_schema=instance).update(pre_group_id=None)
@@ -473,6 +480,9 @@ class RoutingSchemaUpdateSerializer(serializers.ModelSerializer):
                             continue
                         routing_plt = list(filter(lambda x: x['dp_type'] == 1, plt_devices))  # 定线机台
                         routing_device = list(filter(lambda x: x['dp_type'] == 2, plt_devices))  # 定线堆栈
+                        msg_data += '\r\n         {}：{}；'.format(process.process_name,
+                                                                 ','.join([rp['instance_name'] for rp in routing_plt]))
+
                         plt_group = PlatformGroup.objects.filter(
                             route_schema=instance, process_id=process_id, group_type=1).first()
                         dev_group = PlatformGroup.objects.filter(
@@ -498,11 +508,15 @@ class RoutingSchemaUpdateSerializer(serializers.ModelSerializer):
                             id__in=[plt['instance_id'] for plt in routing_plt]).update(group=plt_group)
                         # 更新定线堆栈组
                         cpr_list = []
+                        rd_names = []
                         for dev in routing_device:
+                            rd_names.append(dev['instance_name'])
                             dev_data = {'cache_device_id': dev['instance_id'], 'group': dev_group}
                             cpr_list.append(CacheDeviceRouteRelation(**dev_data))
                         if cpr_list:
                             CacheDeviceRouteRelation.objects.bulk_create(cpr_list)
+                        msg_data += '{}'.format(','.join(rd_names))
+                    r_logger.info(msg_data)
                     instance.is_used = True
                     instance.stash_flag = False
                     instance.save()
