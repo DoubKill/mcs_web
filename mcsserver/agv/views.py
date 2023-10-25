@@ -19,7 +19,7 @@ from agv.models import Tasks, EnvIndicators, EnvCheckLocations, EnvCheckTasks, E
 from agv.serializers import EquipTaskTrackSerializer, EnvCheckLocationsSerializer, EnvCheckTasksSerializer, \
     EnvLocationCheckHistorySerializer
 from basics.management.tasks.env_check import issue_task, create_task
-from basics.models import ProcessSection, Configuration
+from basics.models import ProcessSection, Configuration, PlatFormInfo
 from mcs.common_code import CommonExportListMixin, CommonBatchDestroyView, gen_template_response
 from mcs.derorators import api_recorder
 from monitor.utils import cancel_cache_device_task
@@ -140,6 +140,76 @@ class ProductivityStatisticsView(APIView):
                     out_basket_num = task_cnt * cell_numbers
             ret.append({
                 'process_name': process_name,
+                'in_basket_num': in_basket_num,
+                'out_basket_num': out_basket_num
+            })
+        return Response({'data': ret})
+
+
+@method_decorator([api_recorder], name="dispatch")
+class EquipProductivityStatisticsView(APIView):
+    """机台产能统计"""
+
+    def get(self, request):
+        st = self.request.query_params.get('st')
+        et = self.request.query_params.get('et')
+        q_platform_names = self.request.query_params.get('platform_names')
+        q_process_names = self.request.query_params.get('process_names')
+        filter_kwargs = {'task_location_type': 1, 'state': 7}
+        p_kwargs = {}
+        if st:
+            filter_kwargs['end_time__gte'] = st
+        if et:
+            filter_kwargs['end_time__lte'] = et
+        if q_platform_names:
+            q_platform_name_list = q_platform_names.split(',')
+            filter_kwargs['platform_name__in'] = q_platform_name_list
+            p_kwargs['platform_name__in'] = q_platform_name_list
+        if q_process_names:
+            q_process_name_list = q_process_names.split(',')
+            filter_kwargs['process_name__in'] = q_process_name_list
+            p_kwargs['process__process_name__in'] = q_process_name_list
+        ret = []
+        platform_data = PlatFormInfo.objects.filter(**p_kwargs).values(
+            'platform_name', 'process__upper_rail_type', 'process__upper_basket_type',
+            'process__lower_rail_type', 'process__lower_basket_type', 'process__cell_numbers', 'process__process_name'
+        ).order_by('process__ordering', 'platform_name')
+        query_data_dict = dict(Tasks.objects.filter(
+            **filter_kwargs).values('platform_name').annotate(cnt=Count('id')).values_list('platform_name', 'cnt'))
+        for item in platform_data:
+            platform_name = item['platform_name']
+            upper_rail_type = item['process__upper_rail_type']
+            upper_basket_type = item['process__upper_basket_type']
+            lower_rail_type = item['process__lower_rail_type']
+            lower_basket_type = item['process__lower_basket_type']
+            cell_numbers = item['process__cell_numbers']
+            process_name = item['process__process_name']
+            task_cnt = query_data_dict.get(platform_name, 0)
+            in_basket_num = out_basket_num = 0
+            if upper_rail_type == 1:
+                if upper_basket_type in (1, 3, 5):
+                    in_basket_num = 0
+                else:
+                    in_basket_num = task_cnt * cell_numbers
+            elif upper_rail_type == 2:
+                if upper_basket_type in (1, 3, 5):
+                    out_basket_num = 0
+                else:
+                    out_basket_num = task_cnt * cell_numbers
+
+            if lower_rail_type == 1:
+                if lower_basket_type in (1, 3, 5):
+                    in_basket_num = 0
+                else:
+                    in_basket_num = task_cnt * cell_numbers
+            elif lower_rail_type == 2:
+                if lower_basket_type in (1, 3, 5):
+                    out_basket_num = 0
+                else:
+                    out_basket_num = task_cnt * cell_numbers
+            ret.append({
+                'process_name': process_name,
+                'platform_name': platform_name,
                 'in_basket_num': in_basket_num,
                 'out_basket_num': out_basket_num
             })

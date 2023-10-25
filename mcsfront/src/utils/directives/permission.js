@@ -8,6 +8,7 @@ function checkPermission(el, binding) {
     if (value.length > 0) {
       const permissionArr = permissionObj[value[0]]
       if (!permissionArr || permissionArr.length === 0) {
+        // el.parentNode && el.parentNode.removeChild(el)
         return
       }
       const hasPermission = permissionArr.some(D => {

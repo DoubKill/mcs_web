@@ -6,17 +6,8 @@
         <el-button v-permission="['work_area','add']" type="blue" icon="el-icon-plus" size="small" @click="addFun">新增</el-button>
         <el-button v-permission="['work_area','delete']" type="danger" icon="el-icon-delete" size="small" @click="deleteFun">删除</el-button>
       </div>
-      <el-table
-        ref="multipleTable"
-        :data="tableData"
-        stripe
-        style="width: 60%"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column
-          type="selection"
-          width="40"
-        />
+      <el-table ref="multipleTable" :data="tableData" stripe style="width: 60%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="40" />
         <el-table-column label="工作区ID" prop="area_ID">
           <el-table-column min-width="10">
             <template slot="header" slot-scope="scope">
@@ -34,6 +25,16 @@
             </template>
             <template slot-scope="{row}">
               {{ row.area_name }}
+            </template>
+          </el-table-column>
+        </el-table-column>
+        <el-table-column label="AGV类型" prop="agv_type_name">
+          <el-table-column min-width="10">
+            <template slot="header" slot-scope="scope">
+              <el-input v-model="getParams.agv_type_name" prefix-icon="el-icon-search" size="small" clearable @input="getList" />
+            </template>
+            <template slot-scope="{row}">
+              {{ row.agv_type_name }}
             </template>
           </el-table-column>
         </el-table-column>
@@ -64,18 +65,18 @@
         </el-table-column>
       </el-table>
     </div>
-    <el-dialog
-      :title="(currentObj.id?'编辑':'新建')+'工作区'"
-      :visible.sync="dialogVisible"
-      width="300"
-      :before-close="handleClose"
-    >
+    <el-dialog :title="(currentObj.id?'编辑':'新建')+'工作区'" :visible.sync="dialogVisible" width="500px" :before-close="handleClose">
       <el-form ref="ruleForm" :model="currentObj" :rules="rules" label-width="150px" inline>
         <el-form-item label="工作区ID" prop="area_ID">
           <el-input v-model="currentObj.area_ID" size="small" @change="changeId" />
         </el-form-item>
         <el-form-item label="工作区名称" prop="area_name">
           <el-input v-model="currentObj.area_name" size="small" />
+        </el-form-item>
+        <el-form-item label="agv类型" prop="agv_type">
+          <el-select v-model="currentObj.agv_type" size="small" placeholder="请选择">
+            <el-option v-for="(item) in ageTypeList" :key="item.id" :label="item.type_name" :value="item.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="描述">
           <el-input v-model="currentObj.description" size="small" />
@@ -94,6 +95,7 @@
 
 <script>
 import { workAreas, workAreasDel } from '@/api/base_w'
+import { agvType } from '@/api/jqy'
 export default {
   name: 'WorkspaceManage',
   data() {
@@ -109,13 +111,17 @@ export default {
         ],
         area_name: [
           { required: true, message: '请填写工作区名称', trigger: 'blur' }
+        ],
+        agv_type: [
+          { required: true, message: '请选择agv类型', trigger: 'change' }
         ]
         // rcs_address: [
         //   { required: true, message: '请填写RCS地址', trigger: 'blur' }
         // ]
       },
       btnLoading: false,
-      getParams: {}
+      getParams: {},
+      ageTypeList: []
     }
   },
   created() {
@@ -132,9 +138,17 @@ export default {
         this.loading = false
       }
     },
+    async getAgv() {
+      try {
+        const data = await agvType('get', null, { params: { all: 1 } })
+        this.ageTypeList = data
+      } catch (e) {
+        //
+      }
+    },
     handleClose(done) {
       this.dialogVisible = false
-      this.currentObj = { }
+      this.currentObj = {}
       this.$refs.ruleForm.resetFields()
       if (done) {
         done()
@@ -144,9 +158,11 @@ export default {
       this.currentVal = val || []
     },
     addFun() {
+      this.getAgv()
       this.dialogVisible = true
     },
     editShow(row) {
+      this.getAgv()
       this.currentObj = Object.assign({}, row)
       this.dialogVisible = true
     },
@@ -156,21 +172,23 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.area_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        workAreasDel('post', null, { data: { obj_ids: arr }})
+        workAreasDel('post', null, { data: { obj_ids: arr } })
           .then((response) => {
             this.$message({
               type: 'success',
               message: '操作成功!'
             })
-            this.$store.dispatch('settings/operateTypeSetting', '删除')
+            this.$store.dispatch('settings/operateTypeSetting', '删除' + arrName)
             this.getList()
           }).catch(() => {
           })
@@ -178,7 +196,7 @@ export default {
       })
     },
     submitFun() {
-      this.$refs.ruleForm.validate(async(valid) => {
+      this.$refs.ruleForm.validate(async (valid) => {
         if (valid) {
           try {
             const _api = this.currentObj.id ? 'put' : 'post'
@@ -192,14 +210,14 @@ export default {
             this.btnLoading = true
             await workAreas(_api, this.currentObj.id || null, { data: this.currentObj })
             this.$message.success('操作成功')
-            this.handleClose(null)
-            this.getList()
             this.btnLoading = false
             if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+ this.currentObj.area_name)
             } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+ this.currentObj.area_name)
             }
+            this.handleClose(null)
+            this.getList()
           } catch (e) {
             this.btnLoading = false
           }

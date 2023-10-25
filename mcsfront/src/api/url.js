@@ -102,6 +102,8 @@ export default {
   DelUser: '/api/v1/user/personnels/del-user/',
   PortMaterialType: '/api/v1/basics/port-material-type/',
   PortMaterialTypeDel: '/api/v1/basics/port-material-type/batch-destroy/',
+  AgvType:'/api/v1/basics/agv-type/',
+  AgvTypeDel:'/api/v1/basics/agv-type/batch-destroy/',
   RackType: '/api/v1/basics/rack-type/',
   RackTypeDel: '/api/v1/basics/rack-type/batch-destroy/',
   RackInfo: '/api/v1/basics/rack-info/',
@@ -152,6 +154,8 @@ export default {
   PlatformInfoImport: '/api/v1/basics/platform-info/import-xlsx/',
   AgvPackage: '/api/v1/monitor/agv-package/',
   LocationsSyncLocation: '/api/v1/basics/locations/sync-location/',
+  CurrentSchedulerSearch: '/api/v1/basics/current-scheduler-search/',
+  EquipProductStatic: '/api/v1/agv/equip-product-static/',
 
   ThresholdDisplay: '/api/v1/basics/threshold-display/',
   AgvInProcess: '/api/v1/monitor/agv-in-process/',

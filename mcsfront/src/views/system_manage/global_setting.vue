@@ -219,7 +219,7 @@ export default {
         this.handleClose(null)
         this.getList()
         this.btnLoading = false
-        this.$store.dispatch('settings/operateTypeSetting', '变更')
+        this.$store.dispatch('settings/operateTypeSetting', '变更'+obj1.desc)
       } catch (e) {
         this.btnLoading = false
       }

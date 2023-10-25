@@ -211,6 +211,16 @@ export const asyncRoutes = [{
             }
           },
           {
+            path: '/rack-type',
+            component: () => import('@/views/agv_manage/agv_base/rack_type'),
+            name: 'RackType',
+            meta: {
+              faName: 'AgvBase',
+              title: 'AGV类型管理',
+              permissionName: 'agv_type'
+            }
+          },
+          {
             path: '/workspace-manage',
             component: () => import('@/views/system_manage/workspace_manage'),
             name: 'WorkspaceManage',
@@ -525,6 +535,16 @@ export const asyncRoutes = [{
               faName: 'ReportManage',
               title: '工序产能报表',
               permissionName: 'product_static'
+            }
+          },
+          {
+            path: '/equip-capacity',
+            component: () => import('@/views/report_data/equip_capacity'),
+            name: 'EquipStatic',
+            meta: {
+              faName: 'ReportManage',
+              title: '机台产能报表',
+              permissionName: 'equip_static'
             }
           },
           {

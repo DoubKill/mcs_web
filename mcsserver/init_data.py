@@ -56,6 +56,12 @@ ps_data = [
         'operations': ['view', 'change']
     },
     {
+        'code': 'agv_type',
+        'name': 'AGV类型管理',
+        'category_name': '基础信息管理',
+        'operations': ['view', 'add', 'change', 'delete']
+    },
+    {
         'code': 'work_area',
         'name': '工作区管理',
         'category_name': '基础信息管理',
@@ -167,7 +173,13 @@ ps_data = [
         'code': 'product_static',
         'name': '工序产能报表',
         'category_name': '报表数据',
-        'operations': ['view']
+        'operations': ['view', 'export']
+    },
+    {
+        'code': 'equip_static',
+        'name': '机台产能报表',
+        'category_name': '报表数据',
+        'operations': ['view', 'export']
     },
     {
         'code': 'threshold_display',

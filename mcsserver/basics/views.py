@@ -1,3 +1,4 @@
+import json
 import logging
 import math
 import datetime
@@ -20,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
-from agv.models import CacheDeviceStock
+from agv.models import CacheDeviceStock, Tasks
 from mcs.common_code import CommonBatchDestroyView, CommonExportListMixin, get_cur_sheet, get_sheet_data, \
     gen_template_response
 from mcs.derorators import api_recorder
@@ -31,13 +32,13 @@ from basics.filters import GlobalCodeTypeFilter, GlobalCodeFilter, ProcessSectio
 from basics.models import GlobalCodeType, GlobalCode, ProcessSection, PlatFormInfo, RestLocation, RoutingSchema, \
     CacheDeviceRouteRelation, RestLocationRouteRelation, \
     PlatformGroup, CacheDeviceInfo, EmptyBasketRouteSchema, WorkArea, Configuration, ProcessCacheDeviceRelation, \
-    EmptyCacheRouteSchema, CacheDevicePreRouteRelation, Location, LocationGroup, PlatFormRealInfo, PlatformPart
+    EmptyCacheRouteSchema, CacheDevicePreRouteRelation, Location, LocationGroup, PlatFormRealInfo, PlatformPart, AgvType
 from basics.serializers import GlobalCodeTypeSerializer, GlobalCodeSerializer, ProcessSectionSerializer, \
     PlatFormInfoSerializer, PlatFormInfoUpdateSerializer, RestLocationSerializer, RoutingSchemaSerializer, \
     PlatformGroupSerializer, CacheDeviceInfoSerializer, CacheDeviceInfoUpdateSerializer, LocationSerializer, \
     WorkAreaSerializer, PlatFormInfoCreateSerializer, RoutingSchemaUpdateSerializer, LocationGroupSerializer, \
-    ThresholdDisplaySerializer, PlatFormImportSerializer, PlatFormExportSerializer
-from monitor.utils import get_rest_locations
+    ThresholdDisplaySerializer, PlatFormImportSerializer, PlatFormExportSerializer, AgvTypeSerializer
+from monitor.utils import get_rest_locations, cancel_task
 from user.models import GroupExtension
 
 e_logger = logging.getLogger('error_log')
@@ -108,6 +109,15 @@ class GlobalCodeViewSet(CommonBatchDestroyView, ModelViewSet):
     permission_classes = (IsAuthenticated,)
     pagination_class = None
     filter_class = GlobalCodeFilter
+
+
+@method_decorator([api_recorder], name="dispatch")
+class AgvTypeViewSet(CommonExportListMixin, CommonBatchDestroyView, ModelViewSet):
+    queryset = AgvType.objects.all().order_by('type_ID')
+    serializer_class = AgvTypeSerializer
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (DjangoFilterBackend,)
+    VALUES_FIELDS = ['id', 'type_ID', 'type_name']
 
 
 @method_decorator([api_recorder], name="dispatch")
@@ -301,7 +311,7 @@ class PlatFormInfoViewSet(CommonExportListMixin, CommonBatchDestroyView, ModelVi
                      'process', 'is_used']
     ordering_fields = ('platform_ID', 'platform_name', 'desc', 'location_name', 'process_name',
                        'upper_rail_type', 'lower_rail_type', 'is_used'
-                       'q_time', 'pitch_time', 'created_time', 'created_username', 'working_area_name')
+                       'q_time', 'pitch_time', 'location_group_name', 'created_time', 'created_username', 'working_area_name')
     ordering = ['process__ordering', 'platform_ID']
     EXPORT_FIELDS_DICT = {
         '站台ID': 'platform_ID',
@@ -340,6 +350,9 @@ class PlatFormInfoViewSet(CommonExportListMixin, CommonBatchDestroyView, ModelVi
         queryset = self.filter_queryset(self.get_queryset())
         export = self.request.query_params.get('export')
         all_flag = self.request.query_params.get('all')
+        process_names = self.request.query_params.get('process_names')
+        if process_names:
+            queryset = queryset.filter(process__process_name__in=process_names.split(','))
         if export:
             data = PlatFormExportSerializer(queryset, many=True).data
             return gen_template_response(self.EXPORT_FIELDS_DICT, data, self.FILE_NAME,
@@ -353,6 +366,32 @@ class PlatFormInfoViewSet(CommonExportListMixin, CommonBatchDestroyView, ModelVi
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @atomic()
+    @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated], url_path='batch-update',
+            url_name='batch-update')
+    def batch_update(self, request):
+        """批量启用、停用"""
+        obj_ids = self.request.data.get('obj_ids')
+        for i in obj_ids:
+            try:
+                instance = self.get_queryset().get(id=i)
+            except Exception:
+                raise ValidationError('object does not exists!')
+            if instance.is_used:
+                instance.is_used = False
+                plt_task = Tasks.objects.filter(platform_ID=instance.platform_ID, state__in=(1, 2, 3, 4, 5, 6)).first()
+                if plt_task:
+                    if plt_task.rcs_order_id:
+                        data = [{'order_id': plt_task.rcs_order_id, 'order_command_type_id': 2}]
+                        res_data, recode = cancel_task(data)
+                        if recode != 200:
+                            e_logger.error('禁用站台：{}，任务取消失败'.format(instance.platform_ID))
+            else:
+                instance.is_used = True
+            setattr(instance, 'last_updated_user', self.request.user)
+            instance.save()
+        return Response('ok')
 
     @action(methods=['get'], detail=False, permission_classes=[IsAuthenticated, ], url_path='download-template',
             url_name='download-template')
@@ -1023,3 +1062,38 @@ class CheckConfView(APIView):
                 msg += '未配置休息位组；'
             ret.append(msg)
         return Response(ret)
+
+
+@method_decorator([api_recorder], name="dispatch")
+class CurrentSchedulerSearch(APIView):
+
+    def get(self, request):
+        date_now = datetime.datetime.now()
+        # date_now = datetime.datetime.strptime('2023-10-20 22:12:12', "%Y-%m-%d %H:%M:%S")
+        previous_day = datetime.datetime.now() - datetime.timedelta(days=1)
+        next_day = datetime.datetime.now() + datetime.timedelta(days=1)
+
+        st = date_now.strftime('%Y-%m-%d 00:00:00')
+        et = date_now.strftime('%Y-%m-%d 23:59:59')
+        try:
+            time_data = json.loads(Configuration.objects.get(key='shift_time').value)
+            for shift, shift_time in time_data.items():
+                start_time, end_time = shift_time.split("-")
+                if shift == '晚班':
+                    cp_st = datetime.datetime.strptime(date_now.strftime('%Y-%m-%d') + ' ' + start_time, '%Y-%m-%d %H:%M:%S')
+                    cp_et = datetime.datetime.strptime(next_day.strftime('%Y-%m-%d') + ' ' + end_time, '%Y-%m-%d %H:%M:%S')
+                else:
+                    cp_st = datetime.datetime.strptime(date_now.strftime('%Y-%m-%d') + ' ' + start_time, '%Y-%m-%d %H:%M:%S')
+                    cp_et = datetime.datetime.strptime(date_now.strftime('%Y-%m-%d') + ' ' + end_time, '%Y-%m-%d %H:%M:%S')
+
+                if cp_st <= date_now <= cp_et:
+                    if shift == "晚班":
+                        st = date_now.strftime('%Y-%m-%d') + ' ' + time_data["早班"].split("-")[0]
+                        et = date_now.strftime('%Y-%m-%d') + ' ' + time_data["早班"].split("-")[1]
+                    else:
+                        st = previous_day.strftime('%Y-%m-%d') + ' ' + time_data["晚班"].split("-")[0]
+                        et = date_now.strftime('%Y-%m-%d') + ' ' + time_data["晚班"].split("-")[1]
+                    break
+        except Exception:
+            pass
+        return Response({'st': st, 'et': et})

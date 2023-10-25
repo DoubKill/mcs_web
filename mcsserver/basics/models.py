@@ -57,12 +57,25 @@ class GlobalCode(AbstractEntity):
         verbose_name_plural = verbose_name = '公共代码'
 
 
+class AgvType(models.Model):
+    type_ID = models.CharField(max_length=256)
+    type_name = models.CharField(max_length=256)
+
+    def __str__(self):
+        return self.type_name
+
+    class Meta:
+        db_table = 'bdm_agv_type'
+        verbose_name_plural = verbose_name = 'AGV类型'
+
+
 class WorkArea(AbstractEntity):
     """工作区表"""
     area_ID = models.CharField(max_length=64, help_text='工作区ID', verbose_name='工作区ID', unique=True)
     area_name = models.CharField(max_length=64, help_text='工作区名称', verbose_name='工作区名称', unique=True)
     description = models.CharField(max_length=256, blank=True, null=True, help_text='描述', verbose_name='描述')
     rcs_address = models.CharField(max_length=256, blank=True, null=True, help_text='RCS地址', verbose_name='RCS地址')
+    agv_type = models.ForeignKey(AgvType, blank=True, null=True, on_delete=models.PROTECT)  # AGV类型
 
     class Meta:
         db_table = 'bdm_work_area'

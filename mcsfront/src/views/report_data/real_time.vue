@@ -1,13 +1,13 @@
 <template>
   <div class="">
     <!-- 在制产能汇总 -->
-    <div class="selectStyle">
+    <div class="selectStyle" v-if="!bigScreen">
       线体：
       <el-select v-model="route_name" clearable size="small" placeholder="请选择" @change="getList" @visible-change="visibleChange">
         <el-option v-for="item in lineList" :key="item" :label="item" :value="item" />
       </el-select>
     </div>
-    <div style="width:98%">
+    <div style="width:98%;margin-top:10px">
       <div id="RealTimeBar" style="height:300px" />
       <div id="RealTimeBar1" style="height:300px;margin-top:8px" />
     </div>
@@ -204,13 +204,14 @@ export default {
       items: [],
       agv_detail: [],
       route_name: '',
-      lineList: []
+      lineList: [],
+      bigScreen: ''
     }
   },
   watch: {
     $route: {
       handler() {
-        if (this.$route.fullPath === '/real-time') {
+        if (this.$route.fullPath === '/real-time' || this.$route.fullPath === '/translate/real-time') {
           this.getHeardList()
           this._setInterval = setInterval(d => {
             this.getHeardList()
@@ -224,6 +225,7 @@ export default {
     }
   },
   mounted() {
+    this.bigScreen = this.$route.fullPath === '/real-time' ? false : true
     this.realTimeBar = echarts.init(document.getElementById('RealTimeBar'))
     this.realTimeBar.setOption(this.option, true)
 
@@ -354,7 +356,7 @@ export default {
         this.option1.legend.data = productionsName
         this.option1.xAxis.data = arr
         this.option1.series = seriesArr
-        this.realTimeBar1.setOption(this.option1,true)
+        this.realTimeBar1.setOption(this.option1, true)
       } catch (e) {
         //
       }

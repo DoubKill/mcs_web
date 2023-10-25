@@ -109,8 +109,9 @@
         tooltip-effect="dark"
         style="width: 100%"
         stripe
+        @sort-change="arraySpanMethod"
       >
-        <el-table-column v-for="(item) in newTabHearder" :prop="item.prop" :label="item.label" :min-width="item.width">
+        <el-table-column v-for="(item) in newTabHearder" :prop="item.prop" :label="item.label" :min-width="item.width" :sortable="item.label==='任务创建时间'?'custom':false">
         </el-table-column>
       <el-table-column
         label="操作"
@@ -174,7 +175,7 @@ export default {
       tabHearderMode:['task_no','platform_name','axis1_action_name','axis3_action_name','axis1_package_name','axis3_package_name','priority','state_name','agv_no','created_time'],
       newTabHearder:[],
       tabHearder: [
-        {label:'任务号',prop:'task_no',width:20},{label:'站台',prop:'platform_name',width:20},{label:'动作1',prop:'axis1_action_name',width:20},{label:'动作2',prop:'axis2_action_name',width:20},{label:'动作3',prop:'axis3_action_name',width:20},{label:'动作4',prop:'axis4_action_name',width:20},{label:'包号1',prop:'axis1_package_name',width:20},{label:'包号2',prop:'axis2_package_name',width:20},{label:'包号3',prop:'axis3_package_name',width:20},{label:'包号4',prop:'axis4_package_name',width:20},{label:'优先级',prop:'priority',width:20},{label:'任务状态',prop:'state_name',width:20},{label:'AGV车号',prop:'agv_no',width:20},{label:'任务创建时间',prop:'created_time',width:20}
+        {label:'任务号',prop:'task_no',width:20},{label:'站台',prop:'platform_name',width:20},{label:'动作1',prop:'axis1_action_name',width:15},{label:'动作2',prop:'axis2_action_name',width:15},{label:'动作3',prop:'axis3_action_name',width:15},{label:'动作4',prop:'axis4_action_name',width:20},{label:'包号1',prop:'axis1_package_name',width:20},{label:'包号2',prop:'axis2_package_name',width:20},{label:'包号3',prop:'axis3_package_name',width:25},{label:'包号4',prop:'axis4_package_name',width:20},{label:'优先级',prop:'priority',width:10},{label:'任务状态',prop:'state_name',width:15},{label:'AGV车号',prop:'agv_no',width:20},{label:'任务创建时间',prop:'created_time',width:20}
       ]
     }
   },
@@ -215,6 +216,15 @@ export default {
         } catch (e) {
         //
         }
+      }
+    },
+    async arraySpanMethod(val){
+      try {
+        let obj = { ordering: val.order === null ? null : (val.order === 'ascending' ? '' : '-') + val.prop }
+        Object.assign(this.getParams,obj)
+        this.getList()
+      } catch (e) {
+        //
       }
     },
     editState(val, row) {

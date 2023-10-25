@@ -30,9 +30,11 @@ from monitor.utils import cancel_task, get_agv_info
 @method_decorator([api_recorder], name="dispatch")
 class TaskMonitorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin, GenericViewSet):
     serializer_class = TaskMonitorSerializer
-    queryset = Tasks.objects.filter(state__in=[1, 2, 3, 4, 5, 6]).order_by('id')
+    queryset = Tasks.objects.filter(state__in=[1, 2, 3, 4, 5, 6])
     filter_class = TaskMonitorFilter
-
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    ordering_fields = ('created_time',)
+    ordering = ['id']
     # def get_serializer_context(self):
     #     platform_location_dict = dict(PlatFormInfo.objects.values_list('location_name', 'platform_name'))
     #     return {
@@ -829,8 +831,11 @@ class CacheStationDetailMonitorView(APIView):
 @method_decorator([api_recorder], name="dispatch")
 class OrderHistoryView(CommonExportListMixin, ListAPIView):
     serializer_class = TaskHistorySerializer
-    queryset = Tasks.objects.filter(state__in=[7, 8, 9]).order_by('-id')
+    queryset = Tasks.objects.filter(state__in=[7, 8, 9])
     filter_class = TaskMonitorFilter
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    ordering_fields = ('created_time', 'arrived_time', 'end_time')
+    ordering = ['-id']
     EXPORT_FIELDS_DICT = {
         '任务编号': 'task_no',
         '站台 ID': 'platform_ID',
@@ -1206,6 +1211,7 @@ class RealTimeView(APIView):
 
 @method_decorator([api_recorder], name="dispatch")
 class InProcessView(APIView):
+    authentication_classes = ()
 
     def get(self, request):
         f_route_name = request.query_params.get('route_name')
@@ -1456,9 +1462,12 @@ class TaskDurationReportView(APIView):
         platform_info = PlatFormInfo.objects.filter(**filter_kwargs2).values('platform_ID', 'platform_name', 'process__process_name', 'process__process_ID').order_by('process', 'platform_ID')
         # 获取任务数据
         tasks = Tasks.objects.filter(state=7, task_location_type=1, **filter_kwargs).values('process_name', 'platform_ID') \
-            .annotate(task=Count('id'), mean_task=Avg(F('end_time') - F('created_time'), output_field=DurationField()), mean_allot=Avg(F('bind_time') - F('active_time'), output_field=DurationField()),
-                      mean_move=Avg(F('arrived_time') - F('dispatched_time'), output_field=DurationField()), mean_dock=Avg(F('end_time') - F('begin_act_time'), output_field=DurationField())) \
-            .values('process_name', 'platform_ID', 'task', 'mean_task', 'mean_allot', 'mean_move', 'mean_dock').order_by('process_name', 'platform_ID')
+            .annotate(task=Count('id'),
+                      mean_task=Avg(F('end_time') - F('created_time'), output_field=DurationField()),
+                      mean_allot=Avg(F('bind_time') - F('active_time'), output_field=DurationField()),
+                      mean_move=Avg(F('arrived_time') - F('bind_time'), output_field=DurationField()),
+                      mean_dock=Avg(F('end_time') - F('begin_act_time'), output_field=DurationField())
+                      ).values('process_name', 'platform_ID', 'task', 'mean_task', 'mean_allot', 'mean_move', 'mean_dock').order_by('process_name', 'platform_ID')
         task_dict = {f"{task['process_name']}-{task['platform_ID']}": task for task in tasks}
         for p in platform_info:
             _task_info = task_dict.get(f"{p['process__process_name']}-{p['platform_ID']}")

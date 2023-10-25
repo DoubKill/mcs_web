@@ -547,12 +547,13 @@ class mcs_dispatch():
         return stack_group 
     
 
-    def get_send_data(self,task_no,platform_ID,location_name,actionlist,task_type,agv_id=''):
+    def get_send_data(self,task_no,platform_ID,location_name,actionlist,task_type,agv_id='',agv_type =0):
         send_data = {
             "task_no": task_no,
             "dest_machine_no": platform_ID,
             "location_name": location_name,
             "agv_id":agv_id,
+            "agv_type":agv_type,
             "action_list": json.dumps(actionlist),
             #"action_list": actionlist,
             "order_type": task_type
@@ -697,8 +698,8 @@ class mcs_dispatch():
                 action = {'basket_type':row['basket_type'],"agv_slot": row['slot_no'],"location_slot": row['location_ID'],"opt": row['opt'],"machine_group_source": [],"predicted_material": [],"roll_basket_ready_time": -1,"roll_tasket_cost_time": roll_tasket_cost_time,"qtime": -1}
                 actionlist.append(action)
                 task_ptr[row['slot_no']+str(actmap[row['slot_no']])] = None
-
-        send_data = self.get_send_data(task_no,platform.platform_ID,platform.location_name,actionlist,task_type,str(agv_id))
+        
+        send_data = self.get_send_data(task_no,platform.platform_ID,platform.location_name,actionlist,task_type,str(agv_id),int(platform.agv_type_id))
         with self.get_mcs_session()() as session:
             id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
             session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0],'task_no':task_no,'task_delay_time':platform.task_delay_time,'send_data':json.dumps(send_data)})
@@ -906,7 +907,7 @@ class mcs_dispatch():
                 task_ptr[value['slot_no']+str(key)] = None
             
 
-        send_data = self.get_send_data(task_no,stack.device_ID,location_name,actionlist,1)   
+        send_data = self.get_send_data(task_no,stack.device_ID,location_name,actionlist,1,1005)   
         with self.get_mcs_session()() as session:
             id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
             session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0], 'task_no':task_no, 'task_delay_time':0,'send_data':json.dumps(send_data)})
@@ -1226,7 +1227,15 @@ class mcs_dispatch():
             try:
                 #机台是否屏蔽
                 #尾料处理
+                if one_platfrom.agv_type_id is None:
+                    logger.info('{} 机台对应工作区的agv类型为空，请在页面配置'.format(one_platfrom.location_name))
+                    self.set_alarm_log('error',"站台：{}，机台对应工作区的agv类型为空，请在页面配置".format(one_platfrom.location_name))
+                    continue   
 
+                if one_platfrom.agv_type_id.isdigit() == False:
+                    logger.info('{} 机台对应工作区的agv类型只能为数字，请在页面配置'.format(one_platfrom.location_name))
+                    self.set_alarm_log('error',"站台：{}，机台对应工作区的agv类型只能为数字，请在页面配置".format(one_platfrom.location_name))
+                    continue   
                 '''
                 
                 (1,2)#上进下出
@@ -1300,15 +1309,21 @@ class mcs_dispatch():
                     
                 #要判断在制数量是否超过阈值maximum,minimum
                 #platfrom_group_agv_num = self.get_platfrom_group_agv_num(one_platfrom)
-                cur_platfrom_group_agv_num = agv_count.get(one_platfrom.group_no,0)
-                shunt_cnt = 0
-                shunt_flag = False
-                if one_platfrom.shunt_from_platform is not None:
-                    for row in one_platfrom.shunt_from_platform:
-                        shunt_cnt = shunt_cnt + agv_count.get(row,0)
+                if agv_count is not None:
+                    cur_platfrom_group_agv_num = agv_count.get(one_platfrom.group_no,0)
+                    shunt_cnt = 0
+                    shunt_flag = False
+                    if one_platfrom.shunt_from_platform is not None:
+                        for row in one_platfrom.shunt_from_platform:
+                            shunt_cnt = shunt_cnt + agv_count.get(row,0)
 
-                if one_platfrom.shunt_threshold is not None and shunt_cnt > one_platfrom.shunt_threshold:
-                    shunt_flag = True
+                    if one_platfrom.shunt_threshold is not None and shunt_cnt > one_platfrom.shunt_threshold:
+                        shunt_flag = True
+                else:
+                    shunt_flag = False
+                    logger.info("站台：{},在制数据异常忽略分流功能".format(one_platfrom.location_name)) 
+                    self.set_alarm_log('error',"站台：{},在制数据异常忽略分流功能".format(one_platfrom.location_name))    
+                      
 
                 #如果只进空花篮，没有设备组
                 '''
@@ -1322,14 +1337,17 @@ class mcs_dispatch():
 
                 #ps.upper_rail_type ,ps.upper_basket_type(3,5),ps.lower_rail_type
                 
-
-                if one_platfrom.is_dry_type is False:
-                    #湿区设备，获取配置设备组，不满足退出
-                    wet_group = self.get_wet_group_no_by_platform(self,one_platfrom.platform_ID)
-                    flag = self.can_create_task_by_wet_group_no(one_platfrom.wet_group_threshold,wet_group,agv_count)
-                    if flag == False:
-                        continue
-                
+                if agv_count is not None:
+                    if one_platfrom.is_dry_type is False:
+                        #湿区设备，获取配置设备组，不满足退出
+                        wet_group = self.get_wet_group_no_by_platform(self,one_platfrom.platform_ID)
+                        flag = self.can_create_task_by_wet_group_no(one_platfrom.wet_group_threshold,wet_group,agv_count)
+                        if flag == False:
+                            continue
+                else:
+                    logger.info("站台：{},在制数据异常忽略干湿功能".format(one_platfrom.location_name)) 
+                    self.set_alarm_log('error',"站台：{},在制数据异常忽略干湿功能".format(one_platfrom.location_name))    
+                  
                 #只进空花栏没有组
                 if one_platfrom.upper_basket_type in (1,3,5) and one_platfrom.upper_rail_type ==1 and one_platfrom.lower_rail_type is None:
                     self.create_task(one_platfrom,basket_num,0,changed_time,shunt_flag,tag=tag)
@@ -1526,9 +1544,11 @@ class mcs_dispatch():
                         }
                 platform_ID = platform.platform_ID,
                 location_name = platform.location_name 
+                agv_type = int(platform.agv_type_id)
             elif platform_id in stack_dict:
 
                 task_type = 2      #堆栈
+                agv_type = 1005
                 stack = stack_dict[platform_id]['data']
                 #task_no = self.get_task_no(platform.location_name,tag=tag)
                 task_no = self.get_task_no(stack.group_no+stack.device_ID+str(task_type))
@@ -1549,6 +1569,7 @@ class mcs_dispatch():
                     
             else:
                 task_type = 0
+                agv_type = 0
                 logger.error("agv:{},rcs在制数据异常，站台id:{}，不存在mcs的活跃站台列表里（定线+启用)".format(row["agv_id"],platform_id))
                 self.set_alarm_log('error',"agv:{},rcs在制数据异常，站台id:{}，不存在mcs的活跃站台列表里（定线+启用)".format(row["agv_id"],platform_id))
                 continue
@@ -1576,7 +1597,7 @@ class mcs_dispatch():
             
             actionlist = self.get_action_by_agv_cnt(json.loads(row["parameter_str_2"]))
 
-            send_data = self.get_send_data(task_no,platform_ID,location_name,actionlist,task_type,str(agv_id))
+            send_data = self.get_send_data(task_no,platform_ID,location_name,actionlist,task_type,str(agv_id),agv_type)
             with self.get_mcs_session()() as session:
                 id = session.execute(text(defines.ADD_ONE_TASK), task_ptr).one()
                 session.execute(text(defines.ADD_ONE_TASK_COMMAND), {'task_id':id[0],'task_no':task_no,'task_delay_time':0,'send_data':json.dumps(send_data)})

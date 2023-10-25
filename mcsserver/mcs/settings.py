@@ -229,6 +229,15 @@ LOGGING = {
             'formatter': 'standard',
             'interval': 1,
         },
+        'routeFile': {
+            'level': 'DEBUG',
+            'class': 'mcs.custom_log.CommonTimedRotatingFileHandler',
+            'filename': os.path.join(LOGGING_DIR, 'route.log'),
+            'when': 'midnight',
+            'backupCount': 10,
+            'formatter': 'standard',
+            'interval': 1,
+        },
     },
     'loggers': {
         'django.db.backends': {
@@ -263,6 +272,10 @@ LOGGING = {
         },
         'collect_log': {  # 数据采集
             'handlers': ['collectFile'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+        'route_log': {  # 数据采集
+            'handlers': ['routeFile'],
             'level': 'DEBUG' if DEBUG else 'INFO',
         }
     }

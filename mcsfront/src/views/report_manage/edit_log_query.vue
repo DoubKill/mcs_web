@@ -91,7 +91,7 @@
           </el-table-column>
         </el-table-column>
         <el-table-column label="操作原因">
-          <el-table-column>
+          <el-table-column width="300px">
             <template slot="header" slot-scope="scope">
               <el-input prefix-icon="el-icon-search" v-model="getParams.operator_reason" size="small" clearable @input="changeList" />
             </template>

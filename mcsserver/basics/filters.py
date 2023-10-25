@@ -28,10 +28,11 @@ class WorkAreaFilter(django_filters.rest_framework.FilterSet):
     area_name = django_filters.CharFilter(field_name='area_name', help_text='工作区名称', lookup_expr='icontains')
     rcs_address = django_filters.CharFilter(field_name='rcs_address', help_text='rcs地址', lookup_expr='icontains')
     description = django_filters.CharFilter(field_name='description', help_text='描述', lookup_expr='icontains')
+    agv_type_name = django_filters.CharFilter(field_name='agv_type__type_name', lookup_expr='icontains')
 
     class Meta:
         model = WorkArea
-        fields = ('id', 'area_ID', 'area_name', 'rcs_address', 'description')
+        fields = ('id', 'area_ID', 'area_name', 'rcs_address', 'description', 'agv_type_name')
 
 
 class ProcessSectionFilter(django_filters.rest_framework.FilterSet):
@@ -70,6 +71,7 @@ class PlatFormInfoFilter(django_filters.rest_framework.FilterSet):
     lower_rail_type = django_filters.NumberFilter(field_name='process__lower_rail_type', help_text='下层轨道上下料类型')
     location_name = django_filters.CharFilter(field_name='location_name', help_text='位置名称', lookup_expr='icontains')
     platform_types = django_filters.CharFilter(method='filter_platform_types', help_text='所属定线')
+    location_group_name = django_filters.CharFilter(field_name='location_group__group_name', help_text='休息位组')
 
     def filter_platform_types(self, queryset, name, value):
         platform_types = [int(i) for i in value.split(',')]
@@ -79,7 +81,7 @@ class PlatFormInfoFilter(django_filters.rest_framework.FilterSet):
         model = PlatFormInfo
         fields = ('id', 'platform_ID', 'platform_name', 'desc', 'process', 'working_area', 'is_used', 'process_name',
                   'q_time', 'pitch_time', 'created_username', 'created_time', 'upper_rail_type', 'lower_rail_type',
-                  'location_name', 'platform_types')
+                  'location_name', 'platform_types', 'location_group_name')
 
 
 class CacheDeviceInfoFilter(django_filters.rest_framework.FilterSet):
@@ -201,6 +203,7 @@ class PlatFormInfoOrderingFilter(OrderingFilter):
                 'upper_rail_type': 'process__upper_rail_type',
                 'lower_rail_type': 'process__lower_rail_type',
                 'created_username': 'created_user__username',
+                'location_group_name': 'location_group__group_name'
                 # 在这里添加其他自定义字段名的映射关系
             }
             mapped_ordering = []

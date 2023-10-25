@@ -116,7 +116,19 @@
             </template>
           </el-table-column>
         </el-table-column>
-        <el-table-column label="物料超时时间(秒)" prop="q_time" sortable="custom">
+         <el-table-column label="休息位组" prop="location_group_name" sortable="custom">
+          <el-table-column min-width="22">
+            <template slot="header" slot-scope="scope">
+              <el-select v-model="getParams.location_group_name" size="small" placeholder="" clearable @change="changeList" @visible-change="locationGroupsList">
+                <el-option v-for="item in groups_list" :key="item.id" :label="item.group_name" :value="item.group_name" />
+              </el-select>
+            </template>
+            <template slot-scope="{row}">
+              {{ row.location_group_name }}
+            </template>
+          </el-table-column>
+        </el-table-column>
+        <!-- <el-table-column label="物料超时时间(秒)" prop="q_time" sortable="custom">
           <el-table-column min-width="22">
             <template slot="header" slot-scope="scope">
               <el-input v-model="getParams.q_time" prefix-icon="el-icon-search" size="small" clearable @input="changeDebounce" />
@@ -125,8 +137,8 @@
               {{ row.q_time }}
             </template>
           </el-table-column>
-        </el-table-column>
-        <el-table-column label="节拍(秒)" prop="pitch_time" sortable="custom">
+        </el-table-column> -->
+        <!-- <el-table-column label="节拍(秒)" prop="pitch_time" sortable="custom">
           <el-table-column min-width="15">
             <template slot="header" slot-scope="scope">
               <el-input v-model="getParams.pitch_time" prefix-icon="el-icon-search" size="small" clearable @input="changeDebounce" />
@@ -135,7 +147,7 @@
               {{ row.pitch_time }}
             </template>
           </el-table-column>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column label="创建人" prop="created_username">
           <el-table-column min-width="15">
             <template slot="header" slot-scope="scope">
@@ -460,7 +472,8 @@ export default {
       working_area: null,
       btnExportLoad: false,
       btnExportLoad1: false,
-      btnExportLoad2: false
+      btnExportLoad2: false,
+      groups_list: []
     }
   },
   created() {
@@ -474,6 +487,14 @@ export default {
         const data = await platformInfoNew('get', null, { params: this.getParams })
         this.tableData = data.results || []
         this.total = data.count
+      } catch (e) {
+        //
+      }
+    },
+    async locationGroupsList() {
+      try {
+        const data = await locationGroups('get', null, { params:{all:1} })
+        this.groups_list = data
       } catch (e) {
         //
       }
@@ -522,19 +543,22 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         if (val === '禁用' && d.is_used) {
           arr.push(d.id)
+          arrName.push(d.platform_name)
         } else if (val === '启用' && !d.is_used) {
           arr.push(d.id)
+          arrName.push(d.platform_name)
         }
       })
-      this.$confirm(`此操作${val}, 是否继续?`, '提示', {
+      this.$confirm(`${val === '禁用' ? '禁用后该机台任务将会被取消' : '此操作将' + val}` + `，是否继续?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('settings/operateTypeSetting', val)
+        this.$store.dispatch('settings/operateTypeSetting', val+arrName)
         platformInfoNewUpdate('post', null, { data: { 'obj_ids': arr } })
           .then((response) => {
             this.$message({
@@ -773,15 +797,17 @@ export default {
         return
       }
       const arr = []
+      const arrName = []
       this.currentVal.forEach(d => {
         arr.push(d.id)
+        arrName.push(d.platform_name)
       })
       this.$confirm('此操作删除不可逆, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$store.dispatch('settings/operateTypeSetting', '删除')
+        this.$store.dispatch('settings/operateTypeSetting', '删除'+arrName)
         platformInfoNewDel('post', null, { data: { obj_ids: arr } })
           .then((response) => {
             this.$message({
@@ -812,12 +838,12 @@ export default {
             this.btnLoading = true
             this.currentObj.other_change = this.type
             const _api = this.currentObj.id ? 'put' : 'post'
-            if (this.currentObj.id) {
-              this.$store.dispatch('settings/operateTypeSetting', '变更')
-            } else {
-              this.$store.dispatch('settings/operateTypeSetting', '新增')
-            }
             await platformInfoNew(_api, this.currentObj.id || null, { data: this.currentObj })
+            if (this.currentObj.id) {
+              this.$store.dispatch('settings/operateTypeSetting', '变更'+this.currentObj.platform_name)
+            } else {
+              this.$store.dispatch('settings/operateTypeSetting', '新增'+this.currentObj.platform_name)
+            }
             this.$message.success('操作成功')
             this.handleClose(null)
             this.getList()

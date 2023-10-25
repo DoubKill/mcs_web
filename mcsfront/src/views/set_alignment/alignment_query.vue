@@ -281,12 +281,13 @@ export default {
         const _api = this.newAlignmentNum[index].id ? 'put' : 'post'
         let _obj = this.newAlignmentNum[index]
         _obj.operation_type = bool
+        let _str = bool === 1?'暂存':bool === 2?'使用':bool === 3?'禁用':'恢复'
         await routingSchema(_api, this.newAlignmentNum[index].id ? this.newAlignmentNum[index].id : null, { data: _obj })
+        this.$store.dispatch('settings/operateTypeSetting', this.newAlignmentNum[index].id ? _str + _obj.route_name : '新增'+_obj.route_name)
         this.$message.success('保存成功')
         this.operateMark = []
         this.tableBtnLoading = false
         this.getList()
-        this.$store.dispatch('settings/operateTypeSetting', this.newAlignmentNum[index].id ? '修改' : '新增')
       } catch (e) {
         this.tableBtnLoading = false
       }
@@ -311,7 +312,7 @@ export default {
               type: 'success',
               message: '操作成功!'
             })
-            this.$store.dispatch('settings/operateTypeSetting', '删除')
+            this.$store.dispatch('settings/operateTypeSetting', '删除'+item.route_name)
             this.getList()
           }).catch(() => {
           })

@@ -361,6 +361,22 @@ export function portMaterialTypeDel(method, id, data = {}) {
   Object.assign(obj, data)
   return request(obj)
 }
+export function agvType(method, id, data = {}) {
+  const obj = {
+    url: id ? API.AgvType + id + '/' : API.AgvType,
+    method: method
+  }
+  Object.assign(obj, data)
+  return request(obj)
+}
+export function agvTypeDel(method, id, data = {}) {
+  const obj = {
+    url: id ? API.AgvTypeDel + id + '/' : API.AgvTypeDel,
+    method: method
+  }
+  Object.assign(obj, data)
+  return request(obj)
+}
 export function rackType(method, id, data = {}) {
   const obj = {
     url: id ? API.RackType + id + '/' : API.RackType,
@@ -661,6 +677,22 @@ export function downloadTemplate(params) {
 export function platformInfoImport(method, id, data = {}) {
   const obj = {
     url: id ? API.PlatformInfoImport + id + '/' : API.PlatformInfoImport,
+    method: method
+  }
+  Object.assign(obj, data)
+  return request(obj)
+}
+export function currentSchedulerSearch(method, id, data = {}) {
+  const obj = {
+    url: id ? API.CurrentSchedulerSearch + id + '/' : API.CurrentSchedulerSearch,
+    method: method
+  }
+  Object.assign(obj, data)
+  return request(obj)
+}
+export function equipProductStatic(method, id, data = {}) {
+  const obj = {
+    url: id ? API.EquipProductStatic + id + '/' : API.EquipProductStatic,
     method: method
   }
   Object.assign(obj, data)
