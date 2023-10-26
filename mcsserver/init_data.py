@@ -223,30 +223,30 @@ ps_data = [
         'category_name': '报表数据',
         'operations': ['view']
     },
-    # {
-    #     'code': 'env_indicator',
-    #     'name': '检测指标阈值设置',
-    #     'category_name': '环境检测',
-    #     'operations': ['view', 'change']
-    # },
-    # {
-    #     'code': 'env_location',
-    #     'name': '检测点配置',
-    #     'category_name': '环境检测',
-    #     'operations': ['view', 'add', 'change', 'delete']
-    # },
-    # {
-    #     'code': 'env_task',
-    #     'name': '检测任务配置',
-    #     'category_name': '环境检测',
-    #     'operations': ['view', 'add', 'change', 'delete']
-    # },
-    # {
-    #     'code': 'env_check_history',
-    #     'name': '检测报表',
-    #     'category_name': '环境检测',
-    #     'operations': ['view', 'export']
-    # },
+    {
+        'code': 'env_indicator',
+        'name': '检测指标阈值设置',
+        'category_name': '环境检测',
+        'operations': ['view', 'change']
+    },
+    {
+        'code': 'env_location',
+        'name': '检测点配置',
+        'category_name': '环境检测',
+        'operations': ['view', 'add', 'change', 'delete']
+    },
+    {
+        'code': 'env_task',
+        'name': '检测任务配置',
+        'category_name': '环境检测',
+        'operations': ['view', 'add', 'change', 'delete']
+    },
+    {
+        'code': 'env_check_history',
+        'name': '检测报表',
+        'category_name': '环境检测',
+        'operations': ['view', 'export']
+    },
 ]
 
 
