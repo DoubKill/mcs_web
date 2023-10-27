@@ -352,18 +352,23 @@ class EnvCheckResultTraceback(APIView):
     authentication_classes = ()
 
     def post(self, request):
-        data = self.request.data
+        data = self.request.data['info']
         check_no = data.get('check_no', '').strip()  # RCS订单状态
         location_name = data.get('location_name', '').strip()  # 订单号
         check_time = data.get('check_time')  # RCS状态时间
-        agv_no = data.get('agv_no')  # AGV车号
-        indicator_value_1 = data.get('indicator_value_1')
-        indicator_value_2 = data.get('indicator_value_2')
-        indicator_value_3 = data.get('indicator_value_3')
-        indicator_value_4 = data.get('indicator_value_4')
-        indicator_value_5 = data.get('indicator_value_5')
-        indicator_value_6 = data.get('indicator_value_6')
-        indicator_value_7 = data.get('indicator_value_7')
+        try:
+            agv_no = int(data.get('agv_no'))  # AGV车号
+        except Exception:
+            agv_no = None
+        indicator_value_1 = float(data.get('indicator_value_1'))
+        indicator_value_2 = float(data.get('indicator_value_2'))
+        indicator_value_3 = float(data.get('indicator_value_3'))
+        indicator_value_4 = float(data.get('indicator_value_4'))
+        indicator_value_5 = float(data.get('indicator_value_5'))
+        indicator_value_6 = float(data.get('indicator_value_6'))
+        indicator_value_7 = float(data.get('indicator_value_7'))
+        if not all([check_no, location_name]):
+            return Response({"code": 0, "msg": 'success'})
         check_history = EnvLocationCheckHistory.objects.filter(
             check_no=check_no, location_name=location_name).first()
         env_valid_time = Configuration.objects.get(key='env_valid_time').value
