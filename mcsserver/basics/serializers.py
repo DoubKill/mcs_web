@@ -164,6 +164,8 @@ class PlatFormInfoUpdateSerializer(BaseModelSerializer):
     working_area = serializers.ReadOnlyField(source='process.working_area_id')
     location_name = serializers.CharField(max_length=256, validators=[
         UniqueValidator(queryset=PlatFormInfo.objects.all(), message='位置点已经被使用')])
+    platform_name = serializers.CharField(max_length=256, validators=[
+        UniqueValidator(queryset=PlatFormInfo.objects.all(), message='该站台名称已存在')])
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
